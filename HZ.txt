@@ -1,0 +1,1762 @@
+yuqinyi
+yuqinyi@hotmail.com
+QWEqwe123
+
+------------------------------------------------------------
+------------------------------------------------------------
+------------------------------------------------------------
+------------------------------------------------------------
+------------------------------------------------------------
+------------------------------------------------------------
+------------------------------------------------------------
+------------------------------------------------------------
+------------------------------------------------------------
+------------------------------------------------------------
+------------------------------------------------------------
+------------------------------------------------------------
+------------------------------------------------------------
+------------------------------------------------------------
+------------------------------------------------------------
+------------------------------------------------------------
+------------------------------------------------------------
+------------------------------------------------------------
+------------------------------------------------------------
+------------------------------------------------------------
+------------------------------------------------------------
+------------------------------------------------------------
+------------------------------------------------------------
+------------------------------------------------------------
+------------------------------------------------------------
+------------------------------------------------------------
+------------------------------------------------------------
+------------------------------------------------------------
+------------------------------------------------------------
+------------------------------------------------------------
+2018/12/28 13:36
+
+
+
+
+
+yum list installed | grep php
+
+///////////////////////////////////////
+
+
+
+
+http://101.71.3.57:9000/8001/statistics/rfis.html
+
+
+
+ps -ef | grep jhsw-statistics.jar | grep -v grep | awk '{ print $2 }'
+
+
+curl http://localhost:8001/statistics/rfis.html
+curl http://localhost:8001/statistics/getregionlist
+curl http://101.71.3.60:8001/statistics/getregionlist
+
+
+
+nohup java -jar -Dspring.config.location=/home/jhsw/config/application.yml jhsw-statistics.jar > log.file 2>log.error &
+
+
+sh jhsw-statistics.sh start
+sh jhsw-statistics.sh stop
+sh jhsw-statistics.sh restart
+sh jhsw-statistics.sh status
+
+
+source /etc/profile
+
+JAVA_HOME=/usr/local/java/jdk1.8.0_191
+JRE_HOME=/usr/local/java/jdk1.8.0_191/jre
+CLASSPATH=.:$JAVA_HOME/lib/dt.jar:$JAVA_HOME/lib/tools.jar:$JRE_HOME/lib
+PATH=$JAVA_HOME/bin:$PATH
+export PATH JAVA_HOME CLASSPATH
+
+
+vi /etc/profile
+
+rm jdk-8u191-linux-x64.tar.gz
+
+tar zxvf jdk-8u191-linux-x64.tar.gz
+
+cp jdk-8u191-linux-x64.tar.gz /usr/local/java
+
+mkdir /usr/local/java
+
+netstat -ntlp
+
+mysql -uroot -pHzzJH_0816A -h101.71.0.58
+
+
+
+101.71.3.60
+root
+#JduH@2M
+
+101.71.0.58
+root
+HzzJH_0816A
+
+
+
+
+------------------------------------------------------------
+2018/12/27 16:52
+
+
+
+查看
+cat /etc/issue
+
+
+
+------------------------------------------------------------
+2018/12/21 9:08
+
+
+有些表中的数据，只有经纬度，而没有河道ID，
+
+ n    
+
+
+select m.regioncode, m.regionname, m.reachid reachCode, m.reachname, m.reachlevel, m.chairmanid chairmanCode, m.chairmanname, m.chairmanlevel, sum(IFNULL(outlet.cnt,'0')) outletCnt, sum(IFNULL(album.cnt,'0')) albumCnt, sum(IFNULL(publicity.cnt,'0')) publicityCnt, sum(IFNULL(reachdoc.cnt,'0')) reachDocCnt, sum(IFNULL(policydoc.cnt,'0')) policyDocCnt, sum(IFNULL(farm.cnt,'0')) farmCnt, sum(IFNULL(tf.cnt,'0')) tfCnt from ( select mdar.code regioncode, mdar.name regionname, mdar.regionlevel, mdar.sortorder, mdr.id reachid, mdr.name reachname, mdr.reachlevel, mdrc.chairmanid, su.name chairmanname, mdrc.chairmanlevel from MD_ADMINREGION mdar left join MD_REACH mdr on mdr.adminregionid = mdar.code and mdr.reachlevel = mdar.regionlevel and mdr.status = 1 left join MD_REACHCHAIRMAN mdrc on mdrc.reachid = mdr.id and mdrc.chairmanlevel = mdr.reachlevel and mdrc.status = 1 left join SM_USER su on su.id = mdrc.chairmanid and su.status = 1 left join SM_ROLE sr on sr.id = '262' and sr.status = 1 left join SM_USERROLE sur on sur.userid = su.id and sur.roleid = sr.id where INSTR(mdar.parents, ?) > 0 and mdar.regionlevel = ? and mdr.id is not null ) m /* 排污口 */ left join ( select mdc.reachid, COUNT(1) cnt from MD_COMPONENT mdc inner join MD_COMPONENTTYPE mdct on mdct.id = '20000000000000000000000000000000' and mdct.id = mdc.mainclassid where status = 1 group by mdc.reachid ) outlet on outlet.reachid = m.reachid/* 需要根据检索条件的行政等级来添加on条件 */ /* 随手拍 */ left join ( select region, reach, COUNT(1) cnt from APP_ALBUM where uploaddate BETWEEN ? and ? group by region, reach ) album on album.reach = m.reachid /* 公示牌 */ left join ( select mdpc.reachid, COUNT(1) cnt from MD_PUBLICITYCARD mdpc group by mdpc.reachid ) publicity on publicity.reachid = m.reachid /* 一河一档 */ left join ( select mdd.reachid, COUNT(1) cnt from MD_DOC mdd inner join MD_DOCTYPE mddt on mddt.id = 169 and mddt.id = mdd.typeid where mdd.year BETWEEN ? and ? group by mdd.reachid ) reachdoc on reachdoc.reachid = m.reachid /* 一河一策 */ left join ( select mdd.reachid, COUNT(1) cnt from MD_DOC mdd inner join MD_DOCTYPE mddt on mddt.id = 168 and mddt.id = mdd.typeid where mdd.year BETWEEN ? and ? group by mdd.reachid ) policydoc on policydoc.reachid = m.reachid /* 档案策略 后台计算 */ /* 畜禽养殖场 */ left join ( select mdc.reachid, COUNT(1) cnt from MD_COMPONENT mdc inner join MD_COMPONENTTYPE mdct on mdct.id = '10040000000000000000000000000000' and mdct.id = mdc.subclassid and INSTR(mdct.parents, mdc.mainclassid) > 0 where status = 1 group by mdc.reachid ) farm on farm.reachid = m.reachid /* 处理设施 */ left join ( select mdc.reachid, COUNT(1) cnt from MD_COMPONENT mdc inner join MD_COMPONENTTYPE mdct on mdct.id = '60010000000000000000000000000000' and mdct.id = mdc.subclassid and INSTR(mdct.parents, mdc.mainclassid) > 0 where status = 1 group by mdc.reachid ) tf on tf.reachid = m.reachid group by m.reachid, m.reachlevel, m.chairmanid, m.chairmanlevel order by m.sortorder, m.chairmanid LIMIT ? 
+
+330702000000(String), 4(Integer), 2017-12-20 00:00:00(String), 2018-12-21 23:59:59(String), 2017(Integer), 2018(Integer), 2017(Integer), 2018(Integer), 10(Integer)
+
+
+
+
+
+
+
+
+
+SELECT
+		mdar.sortorder,
+		mdr.id reachid,
+		mdr.NAME reachname,
+		mdr.reachlevel,
+		mdrc.chairmanid,
+		su.NAME chairmanname,
+		mdrc.chairmanlevel 
+	FROM
+		MD_ADMINREGION mdar
+		LEFT JOIN MD_REACH mdr ON mdr.adminregionid = mdar.CODE 
+		AND mdr.reachlevel = mdar.regionlevel 
+		AND mdr.STATUS = 1
+		LEFT JOIN MD_REACHCHAIRMAN mdrc ON mdrc.reachid = mdr.id 
+		AND mdrc.chairmanlevel = mdr.reachlevel 
+		AND mdrc.STATUS = 1 
+		AND mdrc.chairmanlevel = 2
+		LEFT JOIN SM_USER su ON su.id = mdrc.chairmanid 
+		AND su.STATUS = 1 
+		AND su.NAME LIKE CONCAT( '%艳%' )
+		LEFT JOIN SM_ROLE sr ON sr.id = '262' 
+		AND sr.STATUS = 1
+		LEFT JOIN SM_USERROLE sur ON sur.userid = su.id 
+		AND sur.roleid = sr.id 
+	WHERE
+		INSTR( mdar.parents, '330700000000' ) > 0 
+		AND mdar.regionlevel = 3
+-- 		AND mdr.id IS NOT NULL 
+		and mdrc.chairmanid is not null
+
+
+
+
+2018-12-21 13:36:33.215 DEBUG 7036 --- [io-8080-exec-10] com.jhsw.statistics.dao.ar.AdminRegionMapper.selectAdminRegion : ==>  Preparing: select code, name, regionLevel from MD_ADMINREGION where INSTR(parents, ?) > 0 and regionLevel = ? 
+2018-12-21 13:36:33.218 DEBUG 7036 --- [io-8080-exec-10] com.jhsw.statistics.dao.ar.AdminRegionMapper.selectAdminRegion : ==> Parameters: 330702000000(String), 4(Integer)
+2018-12-21 13:36:33.224 DEBUG 7036 --- [io-8080-exec-10] com.jhsw.statistics.dao.ar.AdminRegionMapper.selectAdminRegion : <==      Total: 18
+2018-12-21 13:36:33.242 DEBUG 7036 --- [nio-8080-exec-1] com.jhsw.statistics.dao.statistics.SttisticsMapper.selectCBISList_COUNT : ==>  Preparing: SELECT count(0) FROM (SELECT m.regioncode, m.regionname, m.reachid reachCode, m.reachname, m.reachlevel, m.chairmanid chairmanCode, m.chairmanname, m.chairmanlevel, sum(IFNULL(outlet.cnt, '0')) outletCnt, sum(IFNULL(album.cnt, '0')) albumCnt, sum(IFNULL(publicity.cnt, '0')) publicityCnt, sum(IFNULL(reachdoc.cnt, '0')) reachDocCnt, sum(IFNULL(policydoc.cnt, '0')) policyDocCnt, sum(IFNULL(farm.cnt, '0')) farmCnt, sum(IFNULL(tf.cnt, '0')) tfCnt FROM (SELECT mdar.code regioncode, mdar.name regionname, mdar.regionlevel, mdar.sortorder, mdr.id reachid, mdr.name reachname, mdr.reachlevel, mdrc.chairmanid, su.name chairmanname, mdrc.chairmanlevel FROM MD_ADMINREGION mdar LEFT JOIN MD_REACH mdr ON mdr.adminregionid = mdar.code AND mdr.reachlevel = mdar.regionlevel AND mdr.status = 1 LEFT JOIN MD_REACHCHAIRMAN mdrc ON mdrc.reachid = mdr.id AND mdrc.chairmanlevel = mdr.reachlevel AND mdrc.status = 1 LEFT JOIN SM_USER su ON su.id = mdrc.chairmanid AND su.status = 1 LEFT JOIN SM_ROLE sr ON sr.id = '262' AND sr.status = 1 LEFT JOIN SM_USERROLE sur ON sur.userid = su.id AND sur.roleid = sr.id WHERE INSTR(mdar.parents, ?) > 0 AND mdar.regionlevel = ? AND mdr.id IS NOT NULL) m LEFT JOIN (SELECT mdc.reachid, COUNT(1) cnt FROM MD_COMPONENT mdc INNER JOIN MD_COMPONENTTYPE mdct ON mdct.id = '20000000000000000000000000000000' AND mdct.id = mdc.mainclassid WHERE status = 1 GROUP BY mdc.reachid) outlet ON outlet.reachid = m.reachid LEFT JOIN (SELECT region, reach, COUNT(1) cnt FROM APP_ALBUM WHERE uploaddate BETWEEN ? AND ? GROUP BY region, reach) album ON album.reach = m.reachid LEFT JOIN (SELECT mdpc.reachid, COUNT(1) cnt FROM MD_PUBLICITYCARD mdpc GROUP BY mdpc.reachid) publicity ON publicity.reachid = m.reachid LEFT JOIN (SELECT mdd.reachid, COUNT(1) cnt FROM MD_DOC mdd INNER JOIN MD_DOCTYPE mddt ON mddt.id = 169 AND mddt.id = mdd.typeid WHERE mdd.year BETWEEN ? AND ? GROUP BY mdd.reachid) reachdoc ON reachdoc.reachid = m.reachid LEFT JOIN (SELECT mdd.reachid, COUNT(1) cnt FROM MD_DOC mdd INNER JOIN MD_DOCTYPE mddt ON mddt.id = 168 AND mddt.id = mdd.typeid WHERE mdd.year BETWEEN ? AND ? GROUP BY mdd.reachid) policydoc ON policydoc.reachid = m.reachid LEFT JOIN (SELECT mdc.reachid, COUNT(1) cnt FROM MD_COMPONENT mdc INNER JOIN MD_COMPONENTTYPE mdct ON mdct.id = '10040000000000000000000000000000' AND mdct.id = mdc.subclassid AND INSTR(mdct.parents, mdc.mainclassid) > 0 WHERE status = 1 GROUP BY mdc.reachid) farm ON farm.reachid = m.reachid LEFT JOIN (SELECT mdc.reachid, COUNT(1) cnt FROM MD_COMPONENT mdc INNER JOIN MD_COMPONENTTYPE mdct ON mdct.id = '60010000000000000000000000000000' AND mdct.id = mdc.subclassid AND INSTR(mdct.parents, mdc.mainclassid) > 0 WHERE status = 1 GROUP BY mdc.reachid) tf ON tf.reachid = m.reachid GROUP BY m.reachid, m.reachlevel, m.chairmanid, m.chairmanlevel) table_count 
+2018-12-21 13:36:33.245 DEBUG 7036 --- [nio-8080-exec-1] com.jhsw.statistics.dao.statistics.SttisticsMapper.selectCBISList_COUNT : ==> Parameters: 330702000000(String), 4(Integer), 2017-12-20 00:00:00(String), 2018-12-21 23:59:59(String), 2017(Integer), 2018(Integer), 2017(Integer), 2018(Integer)
+2018-12-21 13:36:34.033 DEBUG 7036 --- [nio-8080-exec-1] com.jhsw.statistics.dao.statistics.SttisticsMapper.selectCBISList_COUNT : <==      Total: 1
+2018-12-21 13:36:34.034 DEBUG 7036 --- [nio-8080-exec-1] com.jhsw.statistics.dao.statistics.SttisticsMapper.selectCBISList : ==>  Preparing: select m.regioncode, m.regionname, m.reachid reachCode, m.reachname, m.reachlevel, m.chairmanid chairmanCode, m.chairmanname, m.chairmanlevel, sum(IFNULL(outlet.cnt,'0')) outletCnt, sum(IFNULL(album.cnt,'0')) albumCnt, sum(IFNULL(publicity.cnt,'0')) publicityCnt, sum(IFNULL(reachdoc.cnt,'0')) reachDocCnt, sum(IFNULL(policydoc.cnt,'0')) policyDocCnt, sum(IFNULL(farm.cnt,'0')) farmCnt, sum(IFNULL(tf.cnt,'0')) tfCnt from ( select mdar.code regioncode, mdar.name regionname, mdar.regionlevel, mdar.sortorder, mdr.id reachid, mdr.name reachname, mdr.reachlevel, mdrc.chairmanid, su.name chairmanname, mdrc.chairmanlevel from MD_ADMINREGION mdar left join MD_REACH mdr on mdr.adminregionid = mdar.code and mdr.reachlevel = mdar.regionlevel and mdr.status = 1 left join MD_REACHCHAIRMAN mdrc on mdrc.reachid = mdr.id and mdrc.chairmanlevel = mdr.reachlevel and mdrc.status = 1 left join SM_USER su on su.id = mdrc.chairmanid and su.status = 1 left join SM_ROLE sr on sr.id = '262' and sr.status = 1 left join SM_USERROLE sur on sur.userid = su.id and sur.roleid = sr.id where INSTR(mdar.parents, ?) > 0 and mdar.regionlevel = ? and mdr.id is not null ) m /* 排污口 */ left join ( select mdc.reachid, COUNT(1) cnt from MD_COMPONENT mdc inner join MD_COMPONENTTYPE mdct on mdct.id = '20000000000000000000000000000000' and mdct.id = mdc.mainclassid where status = 1 group by mdc.reachid ) outlet on outlet.reachid = m.reachid/* 需要根据检索条件的行政等级来添加on条件 */ /* 随手拍 */ left join ( select region, reach, COUNT(1) cnt from APP_ALBUM where uploaddate BETWEEN ? and ? group by region, reach ) album on album.reach = m.reachid /* 公示牌 */ left join ( select mdpc.reachid, COUNT(1) cnt from MD_PUBLICITYCARD mdpc group by mdpc.reachid ) publicity on publicity.reachid = m.reachid /* 一河一档 */ left join ( select mdd.reachid, COUNT(1) cnt from MD_DOC mdd inner join MD_DOCTYPE mddt on mddt.id = 169 and mddt.id = mdd.typeid where mdd.year BETWEEN ? and ? group by mdd.reachid ) reachdoc on reachdoc.reachid = m.reachid /* 一河一策 */ left join ( select mdd.reachid, COUNT(1) cnt from MD_DOC mdd inner join MD_DOCTYPE mddt on mddt.id = 168 and mddt.id = mdd.typeid where mdd.year BETWEEN ? and ? group by mdd.reachid ) policydoc on policydoc.reachid = m.reachid /* 档案策略 后台计算 */ /* 畜禽养殖场 */ left join ( select mdc.reachid, COUNT(1) cnt from MD_COMPONENT mdc inner join MD_COMPONENTTYPE mdct on mdct.id = '10040000000000000000000000000000' and mdct.id = mdc.subclassid and INSTR(mdct.parents, mdc.mainclassid) > 0 where status = 1 group by mdc.reachid ) farm on farm.reachid = m.reachid /* 处理设施 */ left join ( select mdc.reachid, COUNT(1) cnt from MD_COMPONENT mdc inner join MD_COMPONENTTYPE mdct on mdct.id = '60010000000000000000000000000000' and mdct.id = mdc.subclassid and INSTR(mdct.parents, mdc.mainclassid) > 0 where status = 1 group by mdc.reachid ) tf on tf.reachid = m.reachid group by m.reachid, m.reachlevel, m.chairmanid, m.chairmanlevel order by m.sortorder, m.chairmanid LIMIT ? 
+2018-12-21 13:36:34.035 DEBUG 7036 --- [nio-8080-exec-1] com.jhsw.statistics.dao.statistics.SttisticsMapper.selectCBISList : ==> Parameters: 330702000000(String), 4(Integer), 2017-12-20 00:00:00(String), 2018-12-21 23:59:59(String), 2017(Integer), 2018(Integer), 2017(Integer), 2018(Integer), 50(Integer)
+2018-12-21 13:36:34.541 DEBUG 7036 --- [nio-8080-exec-1] com.jhsw.statistics.dao.statistics.SttisticsMapper.selectCBISList : <==      Total: 30
+
+
+
+你每次点检索的时候，都去检索区域下拉框的内容啦？点检索的时候不需要检索区域的，只有改变区域中的选择值时才需要重新检索区域下拉框内容。
+
+
+//* @Cacheable : Spring在每次执行前都会检查Cache中是否存在相同key的缓存元素，如果存在就不再执行该方法，
+而是直接从缓存中获取结果进行返回，否则才会执行并将返回结果存入指定的缓存中。
+
+
+
+
+-- 加河长级别，河长名
+select m.reachid reachCode, m.reachname reachName, m.reachlevel reachLevel, m.chairmanid chairmanCode, m.chairmanname chairmanName, m.chairmanlevel chairmanLevel, sum(prpl.worklogMarkCnt) planLog, sum(IFNULL(dl.dlcnt,'0')) doneLog, sum(IFNULL(pe.pecnt,'0')) planEvent, sum(IFNULL(de.decnt,'0')) doneEvent, sum(prpl.patrolMarkCnt) planCheckRiver, sum(IFNULL(dr.drcnt,'0')) doneCheckRiver from ( select mdar.sortorder, mdr.id reachid, mdr.name reachname, mdr.reachlevel, mdrc.chairmanid, su.name chairmanname, mdrc.chairmanlevel from MD_ADMINREGION mdar left join MD_REACH mdr on mdr.adminregionid = mdar.code and mdr.reachlevel = mdar.regionlevel and mdr.status = 1 left join MD_REACHCHAIRMAN mdrc on mdrc.reachid = mdr.id and mdrc.chairmanlevel = mdr.reachlevel and mdrc.status = 1 and mdrc.chairmanlevel = ? left join SM_USER su on su.id = mdrc.chairmanid and su.status = 1 and su.name like CONCAT('%', ?, '%') left join SM_ROLE sr on sr.id = '262' and sr.status = 1 left join SM_USERROLE sur on sur.userid = su.id and sur.roleid = sr.id where INSTR(mdar.parents, ?) > 0 and mdar.regionlevel = ? and mdr.id is not null ) m left join ( select eventreachid, COUNT(1) decnt from EH_EVENT where INSTR(status,'X') < 1 and INSTR(status,'T') < 1 and INSTR(status,'Z') > 0 and createtime BETWEEN ? and ? group by eventreachid ) de on de.eventreachid = m.reachid left join ( select eventreachid, COUNT(1) pecnt from EH_EVENT where INSTR(status,'X') < 1 and INSTR(status,'T') < 1 and createtime BETWEEN ? and ? group by eventreachid ) pe on pe.eventreachid = m.reachid left join ( select reach, COUNT(1) drcnt from MD_PATROLRECORD where createdate BETWEEN ? and ? group by reach ) dr on dr.reach = m.reachid left join ( SELECT chairmanid, COUNT( chairmanid ) dlcnt FROM ( SELECT chairmanid, logdate FROM LOG_WORKLOG FORCE INDEX ( I_LOG_WORKLOG_LOGDATE ) LIMIT 0,10000000 ) l WHERE logdate BETWEEN ? and ? GROUP BY chairmanid ) dl on dl.chairmanid = m.chairmanid left join ( select rolelevel, IF(patrolmarkmonth IS NULL, IF(patrolmarkweek IS NULL, IF(patrolmarkday IS NULL, 0, patrolmarkday), patrolmarkweek), patrolmarkmonth) * IF(patrolmarkmonth IS NULL, IF(patrolmarkweek IS NULL, IF(patrolmarkday IS NULL, 0, ?), ?), ?) patrolmarkcnt, IF(worklogmarkmonth IS NULL, IF(worklogmarkweek IS NULL, IF(worklogmarkday IS NULL, 0, worklogmarkday), worklogMarkWeek), worklogmarkmonth) * IF(worklogmarkmonth IS NULL, IF(worklogmarkweek IS NULL, IF(worklogmarkday IS NULL, 0, ?), ?), ?) worklogmarkcnt from AM_CHECK_STANDARD where roleid = '262' ) prpl on prpl.rolelevel = m.chairmanlevel group by m.reachid, m.chairmanid, m.chairmanlevel order by m.sortorder, m.chairmanid LIMIT ? 
+3(Integer), 艳(String), 330700000000(String), 3(Integer), 2017-12-20 00:00:00(String), 2018-12-21 23:59:59(String), 2017-12-20 00:00:00(String), 2018-12-21 23:59:59(String), 2017-12-20 00:00:00(String), 2018-12-21 23:59:59(String), 2017-12-20 00:00:00(String), 2018-12-21 23:59:59(String), 366(Long), 53(Long), 13(Long), 366(Long), 53(Long), 13(Long), 15(Integer)
+
+-- 没加河长级别，河长名	
+select m.reachid reachCode, m.reachname reachName, m.reachlevel reachLevel, m.chairmanid chairmanCode, m.chairmanname chairmanName, m.chairmanlevel chairmanLevel, sum(prpl.worklogMarkCnt) planLog, sum(IFNULL(dl.dlcnt,'0')) doneLog, sum(IFNULL(pe.pecnt,'0')) planEvent, sum(IFNULL(de.decnt,'0')) doneEvent, sum(prpl.patrolMarkCnt) planCheckRiver, sum(IFNULL(dr.drcnt,'0')) doneCheckRiver from ( select mdar.sortorder, mdr.id reachid, mdr.name reachname, mdr.reachlevel, mdrc.chairmanid, su.name chairmanname, mdrc.chairmanlevel from MD_ADMINREGION mdar left join MD_REACH mdr on mdr.adminregionid = mdar.code and mdr.reachlevel = mdar.regionlevel and mdr.status = 1 left join MD_REACHCHAIRMAN mdrc on mdrc.reachid = mdr.id and mdrc.chairmanlevel = mdr.reachlevel and mdrc.status = 1 left join SM_USER su on su.id = mdrc.chairmanid and su.status = 1 left join SM_ROLE sr on sr.id = '262' and sr.status = 1 left join SM_USERROLE sur on sur.userid = su.id and sur.roleid = sr.id where INSTR(mdar.parents, ?) > 0 and mdar.regionlevel = ? and mdr.id is not null ) m left join ( select eventreachid, COUNT(1) decnt from EH_EVENT where INSTR(status,'X') < 1 and INSTR(status,'T') < 1 and INSTR(status,'Z') > 0 and createtime BETWEEN ? and ? group by eventreachid ) de on de.eventreachid = m.reachid left join ( select eventreachid, COUNT(1) pecnt from EH_EVENT where INSTR(status,'X') < 1 and INSTR(status,'T') < 1 and createtime BETWEEN ? and ? group by eventreachid ) pe on pe.eventreachid = m.reachid left join ( select reach, COUNT(1) drcnt from MD_PATROLRECORD where createdate BETWEEN ? and ? group by reach ) dr on dr.reach = m.reachid left join ( SELECT chairmanid, COUNT( chairmanid ) dlcnt FROM ( SELECT chairmanid, logdate FROM LOG_WORKLOG FORCE INDEX ( I_LOG_WORKLOG_LOGDATE ) LIMIT 0,10000000 ) l WHERE logdate BETWEEN ? and ? GROUP BY chairmanid ) dl on dl.chairmanid = m.chairmanid left join ( select rolelevel, IF(patrolmarkmonth IS NULL, IF(patrolmarkweek IS NULL, IF(patrolmarkday IS NULL, 0, patrolmarkday), patrolmarkweek), patrolmarkmonth) * IF(patrolmarkmonth IS NULL, IF(patrolmarkweek IS NULL, IF(patrolmarkday IS NULL, 0, ?), ?), ?) patrolmarkcnt, IF(worklogmarkmonth IS NULL, IF(worklogmarkweek IS NULL, IF(worklogmarkday IS NULL, 0, worklogmarkday), worklogMarkWeek), worklogmarkmonth) * IF(worklogmarkmonth IS NULL, IF(worklogmarkweek IS NULL, IF(worklogmarkday IS NULL, 0, ?), ?), ?) worklogmarkcnt from AM_CHECK_STANDARD where roleid = '262' ) prpl on prpl.rolelevel = m.chairmanlevel group by m.reachid, m.chairmanid, m.chairmanlevel order by m.sortorder, m.chairmanid LIMIT ? 
+330700000000(String), 3(Integer), 2017-12-20 00:00:00(String), 2018-12-21 23:59:59(String), 2017-12-20 00:00:00(String), 2018-12-21 23:59:59(String), 2017-12-20 00:00:00(String), 2018-12-21 23:59:59(String), 2017-12-20 00:00:00(String), 2018-12-21 23:59:59(String), 366(Long), 53(Long), 13(Long), 366(Long), 53(Long), 13(Long), 15(Integer)
+
+
+
+http://10.0.9.166:8080/statistics/rps/exportrpslist?code=&regionLevel=0&startDate=2015-01-01
+
+
+
+
+河长无重复
+
+select * from (
+select userid, count(1) cnt from (
+SELECT
+	su.id userid,su.username,sur.priority
+FROM
+	SM_USER su
+	inner JOIN SM_ROLE sr ON sr.id = '262' 
+	AND sr.STATUS = 1
+	inner JOIN SM_USERROLE sur ON sur.userid = su.id 
+	AND sur.roleid = sr.id 
+WHERE
+	su.STATUS = 1
+) s
+group by userid
+) s where cnt > 1
+
+
+
+http://10.0.9.166:8080/statistics/rps/exportrpslist?code=330700000000&endDate=2018-12-21&regionLevel=2&startDate=2017-12-20
+http://10.0.9.166:8080/statistics/cps/exportcpslist?code=330700000000&endDate=2018-12-20&regionLevel=2&startDate=2017-12-19&chairmanLevel=0&chairmanName=
+
+
+
+  "code": "330700000000",
+  "regionLevel": 4
+
+
+
+
+
+
+con:10.0.0.250:3307
+db:hzz-jinhuabak
+u: dongzhong
+p: dongzhong
+
+
+
+------------------------------------------------------------
+2018/12/20 10:27
+
+
+
+http://10.0.9.166:8080/statistics/cps/exportcpslist?endDate=2018-12-20&startDate=2017-12-19&chairmanLevel=0&chairmanName=
+
+
+
+导出方式由CSV转为EXCEL
+
+
+
+
+
+
+JAVA_HOME=/usr/local/java/jdk1.8.0_191
+JRE_HOME=/usr/local/java/jdk1.8.0_191/jre
+CLASSPATH=.:$JAVA_HOME/lib/dt.jar:$JAVA_HOME/lib/tools.jar:$JRE_HOME/lib
+PATH=$JAVA_HOME/bin:$PATH
+export PATH JAVA_HOME CLASSPATH
+
+
+
+内部提供一个服务器
+
+10.0.9.174
+
+root
+
+Dong123
+
+
+
+------------------------------------------------------------
+2018/12/19 9:18
+
+
+
+
+set @startDate = '2017-12-14 00:00:00';
+set @endDate = '2018-12-14 23:59:59';
+
+
+
+explain
+
+SELECT
+	chairmanid,
+	count( 1 ) dlcnt 
+FROM
+	( SELECT chairmanid FROM LOG_WORKLOG FORCE INDEX ( I_LOG_WORKLOG_LOGDATE ) WHERE logdate BETWEEN @startDate AND @endDate ) l 
+GROUP BY
+	chairmanid
+;
+
+
+
+
+
+show variables like '%storage_engine%';
+
+
+2018-12-19 13:14:08.604  INFO 3260 --- [nio-8080-exec-1] org.apache.catalina.core.ContainerBase.[Tomcat].[localhost].[/] : Initializing Spring FrameworkServlet 'dispatcherServlet'
+2018-12-19 13:14:08.919 DEBUG 3260 --- [nio-8080-exec-1] com.jhsw.statistics.dao.statistics.SttisticsMapper.selectCPS_COUNT : ==>  Preparing: select count(0) from (select m.reachid reachCode, m.reachname reachName, m.reachlevel reachLevel, m.chairmanid chairmanCode, m.chairmanname chairmanName, m.chairmanlevel chairmanLevel, sum(prpl.worklogMarkCnt) planLog, sum(IFNULL(dl.dlcnt,'0')) doneLog, sum(IFNULL(pe.pecnt,'0')) planEvent, sum(IFNULL(de.decnt,'0')) doneEvent, sum(prpl.patrolMarkCnt) planCheckRiver, sum(IFNULL(dr.drcnt,'0')) doneCheckRiver from ( select mdar.sortorder, mdr.id reachid, mdr.name reachname, mdr.reachlevel, mdrc.chairmanid, su.name chairmanname, mdrc.chairmanlevel from MD_ADMINREGION mdar left join MD_REACH mdr on mdr.adminregionid = mdar.code and mdr.reachlevel = mdar.regionlevel and mdr.status = 1 left join MD_REACHCHAIRMAN mdrc on mdrc.reachid = mdr.id and mdrc.chairmanlevel = mdr.reachlevel and mdrc.status = 1 left join SM_USER su on su.id = mdrc.chairmanid and su.status = 1 left join SM_ROLE sr on sr.id = '262' and sr.status = 1 left join SM_USERROLE sur on sur.userid = su.id and sur.roleid = sr.id where INSTR(mdar.parents, ?) > 0 and mdar.regionlevel = ? ) m left join ( select eventreachid, count(1) decnt from EH_EVENT where INSTR(status,'X') < 1 and INSTR(status,'T') < 1 and INSTR(status,'Z') > 0 and createtime BETWEEN ? and ? group by eventreachid ) de on de.eventreachid = m.reachid left join ( select eventreachid, count(1) pecnt from EH_EVENT where INSTR(status,'X') < 1 and INSTR(status,'T') < 1 and createtime BETWEEN ? and ? group by eventreachid ) pe on pe.eventreachid = m.reachid left join ( select reach, count(1) drcnt from MD_PATROLRECORD where createdate BETWEEN ? and ? group by reach ) dr on dr.reach = m.reachid left join ( select chairmanid, count(1) dlcnt from ( select chairmanid from LOG_WORKLOG force index(I_LOG_WORKLOG_LOGDATE) where logdate BETWEEN ? and ? ) l group by chairmanid ) dl on dl.chairmanid = m.chairmanid left join ( select rolelevel, IF(patrolmarkmonth IS NULL, IF(patrolmarkweek IS NULL, IF(patrolmarkday IS NULL, 0, patrolmarkday), patrolmarkweek), patrolmarkmonth) * IF(patrolmarkmonth IS NULL, IF(patrolmarkweek IS NULL, IF(patrolmarkday IS NULL, 0, ?), ?), ?) patrolmarkcnt, IF(worklogmarkmonth IS NULL, IF(worklogmarkweek IS NULL, IF(worklogmarkday IS NULL, 0, worklogmarkday), worklogMarkWeek), worklogmarkmonth) * IF(worklogmarkmonth IS NULL, IF(worklogmarkweek IS NULL, IF(worklogmarkday IS NULL, 0, ?), ?), ?) worklogmarkcnt from AM_CHECK_STANDARD where roleid = '262' ) prpl on prpl.rolelevel = m.chairmanlevel group by m.reachid, m.chairmanid, m.chairmanlevel order by m.sortorder, m.chairmanid) tmp_count 
+2018-12-19 13:14:08.936 DEBUG 3260 --- [nio-8080-exec-1] com.jhsw.statistics.dao.statistics.SttisticsMapper.selectCPS_COUNT : ==> Parameters: 330000000000(String), 2(Integer), 2018-01-01 00:00:00(String), 2018-12-19 23:59:59(String), 2018-01-01 00:00:00(String), 2018-12-19 23:59:59(String), 2018-01-01 00:00:00(String), 2018-12-19 23:59:59(String), 2018-01-01 00:00:00(String), 2018-12-19 23:59:59(String), 352(Long), 51(Long), 12(Long), 352(Long), 51(Long), 12(Long)
+2018-12-19 13:14:11.844 DEBUG 3260 --- [nio-8080-exec-1] com.jhsw.statistics.dao.statistics.SttisticsMapper.selectCPS_COUNT : <==      Total: 1
+2018-12-19 13:14:11.852 DEBUG 3260 --- [nio-8080-exec-1] com.jhsw.statistics.dao.statistics.SttisticsMapper.selectCPS : ==>  Preparing: select m.reachid reachCode, m.reachname reachName, m.reachlevel reachLevel, m.chairmanid chairmanCode, m.chairmanname chairmanName, m.chairmanlevel chairmanLevel, sum(prpl.worklogMarkCnt) planLog, sum(IFNULL(dl.dlcnt,'0')) doneLog, sum(IFNULL(pe.pecnt,'0')) planEvent, sum(IFNULL(de.decnt,'0')) doneEvent, sum(prpl.patrolMarkCnt) planCheckRiver, sum(IFNULL(dr.drcnt,'0')) doneCheckRiver from ( select mdar.sortorder, mdr.id reachid, mdr.name reachname, mdr.reachlevel, mdrc.chairmanid, su.name chairmanname, mdrc.chairmanlevel from MD_ADMINREGION mdar left join MD_REACH mdr on mdr.adminregionid = mdar.code and mdr.reachlevel = mdar.regionlevel and mdr.status = 1 left join MD_REACHCHAIRMAN mdrc on mdrc.reachid = mdr.id and mdrc.chairmanlevel = mdr.reachlevel and mdrc.status = 1 left join SM_USER su on su.id = mdrc.chairmanid and su.status = 1 left join SM_ROLE sr on sr.id = '262' and sr.status = 1 left join SM_USERROLE sur on sur.userid = su.id and sur.roleid = sr.id where INSTR(mdar.parents, ?) > 0 and mdar.regionlevel = ? ) m left join ( select eventreachid, count(1) decnt from EH_EVENT where INSTR(status,'X') < 1 and INSTR(status,'T') < 1 and INSTR(status,'Z') > 0 and createtime BETWEEN ? and ? group by eventreachid ) de on de.eventreachid = m.reachid left join ( select eventreachid, count(1) pecnt from EH_EVENT where INSTR(status,'X') < 1 and INSTR(status,'T') < 1 and createtime BETWEEN ? and ? group by eventreachid ) pe on pe.eventreachid = m.reachid left join ( select reach, count(1) drcnt from MD_PATROLRECORD where createdate BETWEEN ? and ? group by reach ) dr on dr.reach = m.reachid left join ( select chairmanid, count(1) dlcnt from ( select chairmanid from LOG_WORKLOG force index(I_LOG_WORKLOG_LOGDATE) where logdate BETWEEN ? and ? ) l group by chairmanid ) dl on dl.chairmanid = m.chairmanid left join ( select rolelevel, IF(patrolmarkmonth IS NULL, IF(patrolmarkweek IS NULL, IF(patrolmarkday IS NULL, 0, patrolmarkday), patrolmarkweek), patrolmarkmonth) * IF(patrolmarkmonth IS NULL, IF(patrolmarkweek IS NULL, IF(patrolmarkday IS NULL, 0, ?), ?), ?) patrolmarkcnt, IF(worklogmarkmonth IS NULL, IF(worklogmarkweek IS NULL, IF(worklogmarkday IS NULL, 0, worklogmarkday), worklogMarkWeek), worklogmarkmonth) * IF(worklogmarkmonth IS NULL, IF(worklogmarkweek IS NULL, IF(worklogmarkday IS NULL, 0, ?), ?), ?) worklogmarkcnt from AM_CHECK_STANDARD where roleid = '262' ) prpl on prpl.rolelevel = m.chairmanlevel group by m.reachid, m.chairmanid, m.chairmanlevel order by m.sortorder, m.chairmanid LIMIT ? 
+2018-12-19 13:14:11.854 DEBUG 3260 --- [nio-8080-exec-1] com.jhsw.statistics.dao.statistics.SttisticsMapper.selectCPS : ==> Parameters: 330000000000(String), 2(Integer), 2018-01-01 00:00:00(String), 2018-12-19 23:59:59(String), 2018-01-01 00:00:00(String), 2018-12-19 23:59:59(String), 2018-01-01 00:00:00(String), 2018-12-19 23:59:59(String), 2018-01-01 00:00:00(String), 2018-12-19 23:59:59(String), 352(Long), 51(Long), 12(Long), 352(Long), 51(Long), 12(Long), 15(Integer)
+2018-12-19 13:14:14.714 DEBUG 3260 --- [nio-8080-exec-1] com.jhsw.statistics.dao.statistics.SttisticsMapper.selectCPS : <==      Total: 15
+
+
+
+
+
+------------------------------------------------------------
+2018/12/18 9:47
+
+
+selectRBISList
+
+
+时间期间：
+	排污口
+	畜禽养殖场
+	处理设施
+			MD_COMPONENT			无需?
+
+	随手拍
+			APP_ALBUM			使用UPLOADDATE
+
+	公示牌
+			MD_PUBLICITYCARD		无需?
+
+	一河一档
+	一河一策
+			MD_DOC				使用year
+
+
+
+
+
+
+未处理：
+	检索条件未加；
+		and createtime BETWEEN #{startDate} and #{endDate}
+	@ -> #未处理；
+	<![CDATA[ > 0]]>
+
+
+
+
+  "code": "330702001000",
+  "regionLevel": 4
+
+
+
+列表：
+河道名称。(md_reach)
+级别。 reachlevel
+河长。(sm_role-262) 
+
+排污口(md_component mainclassid subclassid)。
+
+	select
+		mdc.reachid, count(1) cnt
+	from
+		MD_COMPONENT mdc
+	inner join
+		MD_COMPONENTTYPE mdct on mdct.id = '20000000000000000000000000000000' and mdct.id = mdc.mainclassid
+		/* 需要根据检索条件的行政等级来添加where条件 */
+	where mdc.provinceid = @code
+	group by mdc.reachid
+
+
+
+
+
+
+随手拍 (app_alum)
+	数据库里没有，以什么作为统计规则？
+
+
+	select
+		region, reach, count(1) cnt
+	from
+		APP_ALBUM
+	group by region, reach
+
+
+
+
+公示牌(md_publicity)
+	表字段与数据库中不一致？只需要按河道ID统计？
+
+select
+	mdpc.reachid, count(1) cnt
+from
+	MD_PUBLICITYCARD mdpc
+group by mdpc.reachid
+
+
+
+
+
+一河一档(md_doc type)
+	在数据库中是怎么体现的？数据库里只有“一河一档文件路径”这一个相关字段。
+
+
+			select
+				mdd.reachid, count(1) cnt
+			from
+				MD_DOC mdd
+			inner join
+				MD_DOCTYPE mddt on mddt.id = 169 and mddt.id = mdd.typeid
+			group by mdd.reachid
+
+
+
+
+一河一策(md_doc type)
+	同上。
+
+
+			select
+				mdd.reachid, count(1) cnt
+			from
+				MD_DOC mdd
+			inner join
+				MD_DOCTYPE mddt on mddt.id = 169 and mddt.id = mdd.typeid
+			group by mdd.reachid
+
+
+
+
+
+档案策略
+	河道档案表与治河策略表两张表，按河道ID统计总数？
+
+一河一档 + 一河一策
+
+
+
+
+畜禽养殖场
+	5.3.15.	部件类型表（MD_ComponentType）
+		10000000000000000000000000000000	1	污染源		10000000000000000000000000000000		W
+		10040000000000000000000000000000	1	畜禽养殖	/images/sign/pollution/cultivation.png	10000000000000000000000000000000|10040000000000000000000000000000		W
+	5.3.16.	养殖类型表（MD_	CultivationType）
+	5.3.21.	部件表(MD_Component)
+	部件表中主类型为污染源，子类型为畜禽养殖的记录为统计对象？
+
+	select
+		mdc.reachid, count(1) cnt
+	from
+		MD_COMPONENT mdc
+	inner join
+		MD_COMPONENTTYPE mdct on mdct.id = '10040000000000000000000000000000' and mdct.id = mdc.subclassid and INSTR(mdct.parents, mdc.mainclassid) > 0
+	group by mdc.reachid
+
+
+
+处理设施
+	处理设施是指处理什么情况的设施？
+
+	select
+		mdc.reachid, count(1) cnt
+	from
+		MD_COMPONENT mdc
+	inner join
+		MD_COMPONENTTYPE mdct on mdct.id = '60010000000000000000000000000000' and mdct.id = mdc.subclassid and INSTR(mdct.parents, mdc.mainclassid) > 0
+	group by mdc.reachid
+
+
+
+
+
+		参照部件类型表：
+	5.3.15.	部件类型表（MD_ComponentType）
+		10000000000000000000000000000000	1	污染源		10000000000000000000000000000000		W
+		10010000000000000000000000000000	1	工业污染源	/images/sign/pollution/industrial.png	10000000000000000000000000000000|10010000000000000000000000000000		W
+		10020000000000000000000000000000	1	农业污染源	/images/sign/pollution/agricultural.png	10000000000000000000000000000000|10020000000000000000000000000000		W
+		10030000000000000000000000000000	1	生活污染源	/images/sign/pollution/life.png	10000000000000000000000000000000|10030000000000000000000000000000		W
+		10040000000000000000000000000000	1	畜禽养殖	/images/sign/pollution/cultivation.png	10000000000000000000000000000000|10040000000000000000000000000000		W
+		20000000000000000000000000000000	1	排污口		20000000000000000000000000000000		W
+		20010000000000000000000000000000	1	企业排污口	/images/sign/outsewage/outfall.png	20000000000000000000000000000000|20010000000000000000000000000000		W
+		30000000000000000000000000000000	1	监测类		30000000000000000000000000000000		W
+		30030000000000000000000000000000	1	监控摄像头	/images/sign/monitor/camera.png	30000000000000000000000000000000|30030000000000000000000000000000		W
+		30040000000000000000000000000000	1	监测断面	/images/sign/monitor/jcdm	30000000000000000000000000000000|30040000000000000000000000000000		W
+		30050000000000000000000000000000	1	河道照片	/images/sign/monitor/pic.png	30000000000000000000000000000000|30050000000000000000000000000000		R
+		30070000000000000000000000000000	1	饮用水源地	/images/sign/drink/drink.png	30000000000000000000000000000000|30050000000000000000000000000000		W
+		30090000000000000000000000000000	1	监测河道水质		30000000000000000000000000000000|30090000000000000000000000000000		W
+		40000000000000000000000000000000	1	水文水利		40000000000000000000000000000000		W
+		40010000000000000000000000000000	1	泵站	/images/sign/shuili/bengzhan.png	40000000000000000000000000000000|40010000000000000000000000000000		
+		40020000000000000000000000000000	1	水闸	/images/sign/shuili/shuizha.png	40000000000000000000000000000000|40020000000000000000000000000000		
+		40030000000000000000000000000000	1	水文站	/images/sign/shuili/shuiwen.png	40000000000000000000000000000000|40030000000000000000000000000000		
+		40040000000000000000000000000000	1	监测站	/images/sign/shuili/jiance.png	40000000000000000000000000000000|40040000000000000000000000000000		
+		40050000000000000000000000000000	1	水位站	/images/sign/shuili/shuiwei.png	40000000000000000000000000000000|40050000000000000000000000000000		W
+		40060000000000000000000000000000	1	岸线利用	/images/sign/shuili/axly.png	40000000000000000000000000000000|40060000000000000000000000000000		W
+		50000000000000000000000000000000	1	河道设施		50000000000000000000000000000000		R
+		60000000000000000000000000000000	1	治污项目		60000000000000000000000000000000		R
+		60010000000000000000000000000000	1	工业污染治理	/images/sign/project/building.png	60000000000000000000000000000000|60010000000000000000000000000000		R
+		60020000000000000000000000000000	1	污水处理等基础设施建设	/images/sign/project/building.png	60000000000000000000000000000000|60020000000000000000000000000000		R
+		60030000000000000000000000000000	1	农村生活污水治理	/images/sign/project/building.png	60000000000000000000000000000000|60030000000000000000000000000000		R
+		60040000000000000000000000000000	1	水产养殖塘生态化改造	/images/sign/project/building.png	60000000000000000000000000000000|60040000000000000000000000000000		R
+		60050000000000000000000000000000	1	稻鱼轮作共生减排	/images/sign/project/building.png	60000000000000000000000000000000|60050000000000000000000000000000		R
+		60060000000000000000000000000000	1	禁养限养区划定和整治	/images/sign/project/building.png	60000000000000000000000000000000|60060000000000000000000000000000		R
+		60070000000000000000000000000000	1	水产养殖污染治理	/images/sign/project/building.png	60000000000000000000000000000000|60070000000000000000000000000000		R
+		60080000000000000000000000000000	1	河道整治	/images/sign/project/building.png	60000000000000000000000000000000|60080000000000000000000000000000		R
+		60090000000000000000000000000000	1	饮用水源保护	/images/sign/project/building.png	60000000000000000000000000000000|60090000000000000000000000000000		R
+		60100000000000000000000000000000	1	生态环境保护工程	/images/sign/project/building.png	60000000000000000000000000000000|60100000000000000000000000000000		R
+		60110000000000000000000000000000	1	监测能力建设	/images/sign/project/building.png	60000000000000000000000000000000|60110000000000000000000000000000		R
+		60120000000000000000000000000000	1	船舶垃圾、油污水接收点	/images/sign/project/building.png	60000000000000000000000000000000|60120000000000000000000000000000		R
+		60130000000000000000000000000000	1	废弃矿井治理	/images/sign/project/building.png	60000000000000000000000000000000|60130000000000000000000000000000		R
+		60140000000000000000000000000000	1	农业面源污染治理	/images/sign/project/building.png	60000000000000000000000000000000|60140000000000000000000000000000		R
+		70000000000000000000000000000000	1	河道设施		70000000000000000000000000000000		W
+		70010000000000000000000000000000	1	河道公示牌	/images/sign/monitor/pic.png	70000000000000000000000000000000|70010000000000000000000000000000		W
+		80000000000000000000000000000000	1	治污单位		80000000000000000000000000000000		W
+		80010000000000000000000000000000	1	污水处理厂	/images/sign/huanbao/wsclc.png	80000000000000000000000000000000|80010000000000000000000000000000		W
+		80020000000000000000000000000000	1	农村污水处理设施	/images/sign/huanbao/wsclcs.png	80000000000000000000000000000000		R
+		90000000000000000000000000000000	1	砂区		90000000000000000000000000000000		
+		90010000000000000000000000000000	1	采砂区	/images/sign/shaqu/caisha.png	90000000000000000000000000000000|90010000000000000000000000000000		
+		90020000000000000000000000000000	1	禁采区		90000000000000000000000000000000|90020000000000000000000000000000		
+
+	5.3.21.	部件表(MD_Component)
+		部件表中，主类型和子类型为何类型时，作为统计对象？
+	下面三张表数据库中无：
+		5.3.17.	生活污染源处理方式表（MD_TreatmentOfLifePollution）
+		5.3.18.	工业污染源处理方式表（MD_TreatmentOfIndusPollution）
+		5.3.19.	生活污染源处理方式表（MD_TreatmentOfLifePollution）
+	因此，下面三张表无法统计（这三张表中处理方式为“2设施处理”的记录）；
+		5.3.22.	工业污染源（MD_IndusPollution）
+		5.3.23.	农业污染源（MD_AgriPollution）
+		5.3.24.	生活污染源（MD_LifePollution）
+
+
+
+
+
+
+jhsw201812181009SQL运行速度变慢
+	原因：log_work表检索速度慢
+
+
+------------------------------------------------------------
+2018/12/17 9:28
+
+
+
+
+
+select mdr.provinceid,mdr.cityid,mdr.countyid,mdr.townid,mdr.villageid, mdr.reachlevel, count(1) cnt
+from
+MD_REACH mdr
+inner join
+MD_REACHCHAIRMAN mdrc on mdrc.reachid = mdr.id and mdrc.chairmanlevel = mdr.reachlevel and mdrc.status = 1
+-- where mdr.reachlevel = 5
+group by mdr.provinceid,mdr.cityid,mdr.countyid,mdr.townid,mdr.villageid, mdr.reachlevel
+
+
+
+行政区域 (md_adminregion)。
+标绘河道
+	河道表中关联行政区域表内的河道统计
+
+			select mdr.adminregionid, mdr.reachlevel, count(1) cnt 
+			from MD_REACH mdr
+			inner join MD_ADMINREGION mda
+			where mdr.adminregionid = mda.code and mdr.reachlevel = mda.regionlevel and mdr.status = 1 
+			group by mdr.adminregionid, mdr.reachlevel
+
+
+
+市/县/镇/村级河长（md_reach,sm_user,md_reachchariman)
+	？没有村级河长人数统计？
+	检索条件中选择的行政级别的下属三个级别的河长人数统计？
+
+
+
+select p.countyid, p.pcccnt
+from (
+select pc.cityid, pcc.countyid, pcct.townid, pcctv.villageid,pc.cnt pccnt,pcc.cnt pcccnt,pcct.cnt pcctcnt,pcctv.cnt pcctvcnt
+from (
+	select mdr.provinceid,mdr.cityid, count(1) cnt
+	from
+	MD_REACH mdr
+	inner join
+	MD_REACHCHAIRMAN mdrc on mdrc.reachid = mdr.id 
+	and mdrc.chairmanlevel = mdr.reachlevel 
+	and mdrc.status = 1
+	where mdrc.chairmanlevel = 2
+	group by mdr.provinceid,mdr.cityid
+) pc
+left join (
+	select mdr.provinceid,mdr.cityid,mdr.countyid, count(1) cnt
+	from
+	MD_REACH mdr
+	inner join
+	MD_REACHCHAIRMAN mdrc on mdrc.reachid = mdr.id and mdrc.chairmanlevel = mdr.reachlevel and mdrc.status = 1
+	where mdr.reachlevel = 3
+	group by mdr.provinceid,mdr.cityid,mdr.countyid
+) pcc on pcc.provinceid = pc.provinceid and pcc.cityid = pc.cityid
+left join (
+	select mdr.provinceid,mdr.cityid,mdr.countyid,mdr.townid, count(1) cnt
+	from
+	MD_REACH mdr
+	inner join
+	MD_REACHCHAIRMAN mdrc on mdrc.reachid = mdr.id and mdrc.chairmanlevel = mdr.reachlevel and mdrc.status = 1
+	where mdr.reachlevel = 4
+	group by mdr.provinceid,mdr.cityid,mdr.countyid,mdr.townid
+) pcct on pcct.provinceid = pcc.provinceid and pcct.cityid = pcc.cityid and pcct.countyid = pcc.countyid
+left join (
+	select mdr.provinceid,mdr.cityid,mdr.countyid,mdr.townid,mdr.villageid, count(1) cnt
+	from
+	MD_REACH mdr
+	inner join
+	MD_REACHCHAIRMAN mdrc on mdrc.reachid = mdr.id and mdrc.chairmanlevel = mdr.reachlevel and mdrc.status = 1
+	where mdr.reachlevel = 5
+	group by mdr.provinceid,mdr.cityid,mdr.countyid,mdr.townid,mdr.villageid
+) pcctv on pcctv.provinceid = pcct.provinceid and pcctv.cityid = pcct.cityid and pcctv.countyid = pcct.countyid and pcctv.townid = pcct.townid
+) p
+where p.countyid='330703000000'
+group by p.cityid,p.countyid
+
+根据检索条件来增减select和group by字段，改变where和on字段：
+		select mdr.provinceid,mdr.cityid,mdr.countyid,mdr.townid,mdr.villageid, count(1) cnt
+		from MD_REACH mdr
+		inner join MD_REACHCHAIRMAN mdrc on mdrc.reachid = mdr.id and mdrc.chairmanlevel = mdr.reachlevel and mdrc.status = 1
+		where mdr.reachlevel = 3 and mdr.cityid = @code and 1=2
+		group by mdr.provinceid,mdr.cityid,mdr.countyid,mdr.townid,mdr.villageid
+
+
+
+
+
+工作人员(sm_user,sm_role)
+	河道河长关联表中关联行政区域的河长
+	用户表中关联行政区域所属的职务为？？？的用户
+	但是，5.3.7.	职员职务表（MD_Duty）数据库中无，如何确定用户职务？
+
+select
+	su.provinceid, su.cityid, su.countyid, su.townid, su.villageid, count(1) cnt
+from
+	SM_USER su
+inner join
+	SM_ROLE sr on sr.id = '264' and sr.status = 1
+inner join
+	SM_USERROLE sur on sur.userid = su.id and sur.roleid = sr.id
+group by su.provinceid, su.cityid, su.countyid, su.townid, su.villageid
+
+
+
+
+保洁员
+	用户表中关联行政区域所属的职务为“保洁员”的用户
+	但是，5.3.7.	职员职务表（MD_Duty）数据库中无，如何确定用户职务？
+
+select
+	su.provinceid, su.cityid, su.countyid, su.townid, su.villageid, count(1) cnt
+from
+	SM_USER su
+inner join
+	SM_ROLE sr on sr.id = '6' and sr.status = 1
+inner join
+	SM_USERROLE sur on sur.userid = su.id and sur.roleid = sr.id
+group by su.provinceid, su.cityid, su.countyid, su.townid, su.villageid
+
+
+
+
+一河一档
+	同河道基础信息统计
+
+select
+	mdd.reachid, count(1) cnt
+from
+	MD_DOC mdd
+inner join
+	MD_DOCTYPE mddt on mddt.id = 169 and mddt.id = mdd.typeid
+group by mdd.reachid
+
+
+
+
+
+一河一策
+	同河道基础信息统计
+
+select
+	mdd.reachid, count(1) cnt
+from
+	MD_DOC mdd
+inner join
+	MD_DOCTYPE mddt on mddt.id = 168 and mddt.id = mdd.typeid
+group by mdd.reachid
+
+
+
+
+公示牌
+	同河道基础信息统计
+
+select
+	mdpc.reachid, count(1) cnt
+from
+	MD_PUBLICITYCARD mdpc
+group by mdpc.reachid
+
+
+
+
+
+污染源
+	5.3.15.	部件类型表（MD_ComponentType）
+		10000000000000000000000000000000	1	污染源		10000000000000000000000000000000		W
+	5.3.21.	部件表(MD_Component)
+	部件表中主类型为污染源的记录为统计对象？
+
+			select
+				mdc.provinceid,mdc.cityid, mdc.countyid, mdc.townid, mdc.villageid, count(1) cnt
+			from
+				MD_COMPONENT mdc
+			inner join
+				MD_COMPONENTTYPE mdct on mdct.id = '10000000000000000000000000000000' and mdct.id = mdc.mainclassid
+			group by mdc.provinceid,mdc.cityid, mdc.countyid, mdc.townid, mdc.villageid
+
+
+污水处理厂
+	5.3.15.	部件类型表（MD_ComponentType）
+		80000000000000000000000000000000	1	治污单位		80000000000000000000000000000000		W
+		80010000000000000000000000000000	1	污水处理厂	/images/sign/huanbao/wsclc.png	80000000000000000000000000000000|80010000000000000000000000000000		W
+	5.3.21.	部件表(MD_Component)
+	部件表中，主类型为“治污单位”，子类型为“污水处理厂”的记录作为统计对象？
+
+			select
+				mdc.provinceid,mdc.cityid, mdc.countyid, mdc.townid, mdc.villageid, count(1) cnt
+			from
+				MD_COMPONENT mdc
+			inner join
+				MD_COMPONENTTYPE mdct on mdct.id = '80010000000000000000000000000000' and mdct.id = mdc.subclassid and INSTR(mdct.parents, mdc.mainclassid) > 0
+			group by mdc.provinceid,mdc.cityid, mdc.countyid, mdc.townid, mdc.villageid
+
+
+
+
+
+监控摄像头
+	5.3.15.	部件类型表（MD_ComponentType）
+		30000000000000000000000000000000	1	监测类		30000000000000000000000000000000		W
+		30030000000000000000000000000000	1	监控摄像头	/images/sign/monitor/camera.png	30000000000000000000000000000000|30030000000000000000000000000000		W
+	5.3.21.	部件表(MD_Component)
+	部件表中，主类型为“监测类”，子类型为“监控摄像头”的记录作为统计对象？
+
+			select
+				mdc.provinceid,mdc.cityid, mdc.countyid, mdc.townid, mdc.villageid, count(1) cnt
+			from
+				MD_COMPONENT mdc
+			inner join
+				MD_COMPONENTTYPE mdct on mdct.id = '30030000000000000000000000000000' and mdct.id = mdc.subclassid and INSTR(mdct.parents, mdc.mainclassid) > 0
+			group by mdc.provinceid,mdc.cityid, mdc.countyid, mdc.townid, mdc.villageid
+
+
+
+
+
+监测断面
+	5.3.15.	部件类型表（MD_ComponentType）
+		30000000000000000000000000000000	1	监测类		30000000000000000000000000000000		W
+		30040000000000000000000000000000	1	监测断面	/images/sign/monitor/jcdm	30000000000000000000000000000000|30040000000000000000000000000000		W
+	5.3.21.	部件表(MD_Component)
+	部件表中，主类型为“监测类”，子类型为“监测断面”的记录作为统计对象？
+
+			select
+				mdc.provinceid,mdc.cityid, mdc.countyid, mdc.townid, mdc.villageid, count(1) cnt
+			from
+				MD_COMPONENT mdc
+			inner join
+				MD_COMPONENTTYPE mdct on mdct.id = '30040000000000000000000000000000' and mdct.id = mdc.subclassid and INSTR(mdct.parents, mdc.mainclassid) > 0
+			group by mdc.provinceid,mdc.cityid, mdc.countyid, mdc.townid, mdc.villageid
+
+
+
+
+
+
+
+
+
+查询河长
+			inner join
+				MD_REACHCHAIRMAN mdrc on mdrc.reachid = mdr.id and mdrc.chairmanlevel = mdr.reachlevel and mdrc.status = 1
+时，“ and mdrc.chairmanlevel = mdr.reachlevel”条件可能不需要。。。
+
+
+
+
+
+explain 
+
+
+SELECT id,name,
+substring_index(parents,'|',1),null,null,null,null
+FROM `md_adminregion`
+where REGIONLEVEL = 1
+
+union 
+
+SELECT id,name,
+substring_index(parents,'|',1),substring_index(parents,'|',2),null,null,null
+FROM `md_adminregion`
+where REGIONLEVEL = 2
+
+union 
+
+SELECT id,name,
+substring_index(parents,'|',1),substring_index(parents,'|',2),substring_index(parents,'|',3),null,null
+FROM `md_adminregion`
+where REGIONLEVEL = 3
+
+union 
+
+SELECT id,name,
+substring_index(parents,'|',1),substring_index(parents,'|',2),substring_index(parents,'|',3),substring_index(parents,'|',4),null
+FROM `md_adminregion`
+where REGIONLEVEL = 4
+
+union 
+
+SELECT id,name,
+substring_index(parents,'|',1),substring_index(parents,'|',2),substring_index(parents,'|',3),substring_index(parents,'|',4),substring_index(parents,'|',5)
+FROM `md_adminregion`
+where REGIONLEVEL = 5
+
+
+------------------------------------------------------------两个区域统计的总计未处理
+2018/12/15 13:34
+
+
+
+两个区域统计的总计未处理
+
+
+
+
+
+
+
+
+
+<![CDATA[ > 0]]>
+<![CDATA[ < 1]]>
+
+
+
+2018-12-15 15:46:00.874  INFO 3224 --- [nio-8080-exec-1] org.apache.catalina.core.ContainerBase.[Tomcat].[localhost].[/] : Initializing Spring FrameworkServlet 'dispatcherServlet'
+2018-12-15 15:46:00.922 DEBUG 3224 --- [nio-8080-exec-1] com.jhsw.statistics.dao.statistics.SttisticsMapper.selectCPS : ==>  Preparing: select m.reachid reachCode, m.reachname reachName, m.reachlevel reachLevel, m.chairmanid chairmanCode, m.chairmanname chairmanName, m.chairmanlevel chairmanLevel, sum(prpl.worklogMarkCnt) planLog, sum(IFNULL(dl.dlcnt,'0')) doneLog, sum(IFNULL(pe.pecnt,'0')) planEvent, sum(IFNULL(de.decnt,'0')) doneEvent, sum(prpl.patrolMarkCnt) planCheckRiver, sum(IFNULL(dr.drcnt,'0')) doneCheckRiver from ( select mdar.sortorder, mdr.id reachid, mdr.name reachname, mdr.reachlevel, mdrc.chairmanid, su.name chairmanname, mdrc.chairmanlevel from MD_ADMINREGION mdar inner join MD_REACH mdr on mdr.adminregionid = mdar.code and mdr.reachlevel = mdar.regionlevel and mdr.status = 1 inner join MD_REACHCHAIRMAN mdrc on mdrc.reachid = mdr.id and mdrc.chairmanlevel = mdr.reachlevel and mdrc.status = 1 inner join SM_USER su on su.id = mdrc.chairmanid and su.status = 1 inner join SM_ROLE sr on sr.id = '262' and su.status = 1 inner join SM_USERROLE sur on sur.USERID = su.id and sur.roleid = sr.id where INSTR(mdar.parents, ?) > 0 and mdar.regionlevel = ? ) m left join ( select eventreachid, count(1) decnt from EH_EVENT where INSTR(status,'X') < 1 and INSTR(status,'T') < 1 and INSTR(status,'Z') > 0 and createtime BETWEEN ? and ? group by eventreachid ) de on de.eventreachid = m.reachid left join ( select eventreachid, count(1) pecnt from EH_EVENT where INSTR(status,'X') < 1 and INSTR(status,'T') < 1 and createtime BETWEEN ? and ? group by eventreachid ) pe on pe.eventreachid = m.reachid left join ( select reach, count(1) drcnt from MD_PATROLRECORD where createdate BETWEEN ? and ? group by reach ) dr on dr.reach = m.reachid left join ( select chairmanid, count(1) dlcnt from ( select chairmanid from LOG_WORKLOG force index(I_LOG_WORKLOG_LOGDATE) where logdate BETWEEN @sd and @ed ) l group by chairmanid ) dl on dl.chairmanid = m.chairmanid left join ( select rolelevel, IF(patrolmarkmonth IS NULL, IF(patrolmarkweek IS NULL, IF(patrolmarkday IS NULL, 0, patrolmarkday), patrolmarkweek), patrolmarkmonth) * IF(patrolmarkmonth IS NULL, IF(patrolmarkweek IS NULL, IF(patrolmarkday IS NULL, 0, ?), ?), ?) patrolmarkcnt, IF(worklogmarkmonth IS NULL, IF(worklogmarkweek IS NULL, IF(worklogmarkday IS NULL, 0, worklogmarkday), worklogMarkWeek), worklogmarkmonth) * IF(worklogmarkmonth IS NULL, IF(worklogmarkweek IS NULL, IF(worklogmarkday IS NULL, 0, ?), ?), ?) worklogmarkcnt from AM_CHECK_STANDARD where roleid = '262' ) prpl on prpl.rolelevel = m.chairmanlevel group by m.reachid, m.chairmanid, m.chairmanlevel order by m.sortorder, m.chairmanid 
+2018-12-15 15:46:00.926 DEBUG 3224 --- [nio-8080-exec-1] com.jhsw.statistics.dao.statistics.SttisticsMapper.selectCPS : ==> Parameters: 330000000000(String), 2(Integer), 2018-11-01 00:00:00(String), 2018-12-15 23:59:59(String), 2018-11-01 00:00:00(String), 2018-12-15 23:59:59(String), 2018-11-01 00:00:00(String), 2018-12-15 23:59:59(String), 44(Long), 6(Long), 2(Long), 44(Long), 6(Long), 2(Long)
+2018-12-15 15:46:02.589 DEBUG 3224 --- [nio-8080-exec-1] com.jhsw.statistics.dao.statistics.SttisticsMapper.selectCPS : <==      Total: 16
+2018-12-15 15:46:28.442 DEBUG 3224 --- [nio-8080-exec-2] com.jhsw.statistics.dao.statistics.SttisticsMapper.selectRPS : ==>  Preparing: select m.regioncode areaCode, m.regionname areaName, m.regionlevel areaLevel, sum(prpl.worklogMarkCnt) planLog, sum(IFNULL(dl.dlcnt,'0')) doneLog, sum(IFNULL(pe.pecnt,'0')) planEvent, sum(IFNULL(de.decnt,'0')) doneEvent, sum(prpl.patrolMarkCnt) planCheckRiver, sum(IFNULL(dr.drcnt,'0')) doneCheckRiver from ( select mdar.code regioncode, mdar.name regionname, mdar.regionlevel, mdar.parents, mdar.sortorder, mdr.id reachid, mdr.name reachname, mdrc.chairmanid from MD_ADMINREGION mdar inner join MD_REACH mdr on mdr.adminregionid = mdar.code and mdr.reachlevel = mdar.regionlevel and mdr.status = 1 inner join MD_REACHCHAIRMAN mdrc on mdrc.reachid = mdr.id and mdrc.chairmanlevel = mdr.reachlevel and mdrc.status = 1 inner join SM_USER su on su.id = mdrc.chairmanid and su.status = 1 inner join SM_ROLE sr on sr.id = '262' and su.status = 1 inner join SM_USERROLE sur on sur.USERID = su.id and sur.roleid = sr.id where INSTR(mdar.parents, ?) > 0 and mdar.regionlevel = ? ) m left join ( select eventoccurareaid areaid, count(1) decnt from EH_EVENT where INSTR(status,'X') < 1 and INSTR(status,'T') < 1 and INSTR(status,'Z') > 0 and createtime BETWEEN ? and ? group by eventoccurareaid ) de on de.areaid = m.regioncode left join ( select eventoccurareaid areaid, count(1) pecnt from EH_EVENT where INSTR(status,'X') < 1 and INSTR(status,'T') < 1 and createtime BETWEEN ? and ? group by eventoccurareaid ) pe on pe.areaid = m.regioncode left join ( select region, count(1) drcnt from MD_PATROLRECORD where createdate BETWEEN ? and ? group by region ) dr on dr.region = m.regioncode left join ( select chairmanid, count(1) dlcnt from ( select chairmanid from LOG_WORKLOG force index(I_LOG_WORKLOG_LOGDATE) where logdate BETWEEN @sd and @ed ) l group by chairmanid ) dl on dl.chairmanid = m.chairmanid left join ( select rolelevel, IF(patrolmarkmonth IS NULL, IF(patrolmarkweek IS NULL, IF(patrolmarkday IS NULL, 0, patrolmarkday), patrolmarkweek), patrolmarkmonth) * IF(patrolmarkmonth IS NULL, IF(patrolmarkweek IS NULL, IF(patrolmarkday IS NULL, 0, ?), ?), ?) patrolmarkcnt, IF(worklogmarkmonth IS NULL, IF(worklogmarkweek IS NULL, IF(worklogmarkday IS NULL, 0, worklogmarkday), worklogMarkWeek), worklogmarkmonth) * IF(worklogmarkmonth IS NULL, IF(worklogmarkweek IS NULL, IF(worklogmarkday IS NULL, 0, ?), ?), ?) worklogmarkcnt from AM_CHECK_STANDARD where roleid = '262' ) prpl on prpl.rolelevel = m.regionlevel group by m.regioncode, m.regionname, m.regionlevel order by m.sortorder 
+2018-12-15 15:46:28.449 DEBUG 3224 --- [nio-8080-exec-2] com.jhsw.statistics.dao.statistics.SttisticsMapper.selectRPS : ==> Parameters: 330000000000(String), 2(Integer), 2018-11-01 00:00:00(String), 2018-12-15 23:59:59(String), 2018-11-01 00:00:00(String), 2018-12-15 23:59:59(String), 2018-11-01 00:00:00(String), 2018-12-15 23:59:59(String), 44(Long), 6(Long), 2(Long), 44(Long), 6(Long), 2(Long)
+2018-12-15 15:46:30.603 DEBUG 3224 --- [nio-8080-exec-2] com.jhsw.statistics.dao.statistics.SttisticsMapper.selectRPS : <==      Total: 1
+
+
+
+
+
+
+2018-12-15 15:38:23.389  INFO 3224 --- [nio-8080-exec-1] org.apache.catalina.core.ContainerBase.[Tomcat].[localhost].[/] : Initializing Spring FrameworkServlet 'dispatcherServlet'
+2018-12-15 15:38:23.579 DEBUG 3224 --- [nio-8080-exec-1] com.jhsw.statistics.dao.statistics.SttisticsMapper.selectCPS : ==>  Preparing: select m.reachid reachCode, m.reachname reachName, m.reachlevel reachLevel, m.chairmanid chairmanCode, m.chairmanname chairmanName, m.chairmanlevel chairmanLevel, sum(prpl.worklogMarkCnt) planLog, sum(IFNULL(dl.dlcnt,'0')) doneLog, sum(IFNULL(pe.pecnt,'0')) planEvent, sum(IFNULL(de.decnt,'0')) doneEvent, sum(prpl.patrolMarkCnt) planCheckRiver, sum(IFNULL(dr.drcnt,'0')) doneCheckRiver from ( select mdar.sortorder, mdr.id reachid, mdr.name reachname, mdr.reachlevel, mdrc.chairmanid, su.name chairmanname, mdrc.chairmanlevel from MD_ADMINREGION mdar inner join MD_REACH mdr on mdr.adminregionid = mdar.code and mdr.reachlevel = mdar.regionlevel and mdr.status = 1 inner join MD_REACHCHAIRMAN mdrc on mdrc.reachid = mdr.id and mdrc.chairmanlevel = mdr.reachlevel and mdrc.status = 1 inner join SM_USER su on su.id = mdrc.chairmanid and su.status = 1 inner join SM_ROLE sr on sr.id = '262' and su.status = 1 inner join SM_USERROLE sur on sur.USERID = su.id and sur.roleid = sr.id where INSTR(mdar.parents, ?) > 0 and mdar.regionlevel = ? ) m left join ( select eventreachid, count(1) decnt from EH_EVENT where INSTR(status,'X') < 1 and INSTR(status,'T') < 1 and INSTR(status,'Z') > 0 and createtime BETWEEN ? and ? group by eventreachid ) de on de.eventreachid = m.reachid left join ( select eventreachid, count(1) pecnt from EH_EVENT where INSTR(status,'X') < 1 and INSTR(status,'T') < 1 and createtime BETWEEN ? and ? group by eventreachid ) pe on pe.eventreachid = m.reachid left join ( select reach, count(1) drcnt from MD_PATROLRECORD where createdate BETWEEN ? and ? group by reach ) dr on dr.reach = m.reachid left join ( select chairmanid, count(1) dlcnt from LOG_WORKLOG where logdate BETWEEN ? and ? group by chairmanid ) dl on dl.chairmanid = m.chairmanid left join ( select rolelevel, IF(patrolmarkmonth IS NULL, IF(patrolmarkweek IS NULL, IF(patrolmarkday IS NULL, 0, patrolmarkday), patrolmarkweek), patrolmarkmonth) * IF(patrolmarkmonth IS NULL, IF(patrolmarkweek IS NULL, IF(patrolmarkday IS NULL, 0, ?), ?), ?) patrolmarkcnt, IF(worklogmarkmonth IS NULL, IF(worklogmarkweek IS NULL, IF(worklogmarkday IS NULL, 0, worklogmarkday), worklogMarkWeek), worklogmarkmonth) * IF(worklogmarkmonth IS NULL, IF(worklogmarkweek IS NULL, IF(worklogmarkday IS NULL, 0, ?), ?), ?) worklogmarkcnt from AM_CHECK_STANDARD where roleid = '262' ) prpl on prpl.rolelevel = m.chairmanlevel group by m.reachid, m.chairmanid, m.chairmanlevel order by m.sortorder, m.chairmanid 
+2018-12-15 15:38:23.596 DEBUG 3224 --- [nio-8080-exec-1] com.jhsw.statistics.dao.statistics.SttisticsMapper.selectCPS : ==> Parameters: 330000000000(String), 2(Integer), 2018-11-01 00:00:00(String), 2018-12-15 23:59:59(String), 2018-11-01 00:00:00(String), 2018-12-15 23:59:59(String), 2018-11-01 00:00:00(String), 2018-12-15 23:59:59(String), 2018-11-01 00:00:00(String), 2018-12-15 23:59:59(String), 44(Long), 6(Long), 2(Long), 44(Long), 6(Long), 2(Long)
+2018-12-15 15:44:02.891 DEBUG 3224 --- [nio-8080-exec-1] com.jhsw.statistics.dao.statistics.SttisticsMapper.selectCPS : <==      Total: 16
+2018-12-15 15:44:16.460  INFO 3224 --- [       Thread-6] com.alibaba.druid.pool.DruidDataSource : {dataSource-1} closed
+
+
+
+
+
+
+------------------------------------------------------------
+2018/12/14 9:04
+
+
+
+//初步调试SQL//////////////////////////////////////////////////////////
+set @sd = '2017-12-14 00:00:00';
+set @ed = '2018-12-14 23:59:59';
+set @mn = 12;
+set @wn = 52;
+set @dn = 365;
+set @lvl = 4;
+set @par = '330781000000';
+
+
+		select 
+			m.reachid,
+			m.reachname,
+			m.reachlevel,
+			m.chairmanid,
+			m.chairmanname,
+			m.chairmanlevel,
+			sum(prpl.worklogMarkCnt) planLog,
+			sum(IFNULL(dl.dlcnt,'0')) doneLog,
+			sum(IFNULL(pe.pecnt,'0')) planEvent,
+			sum(IFNULL(de.decnt,'0')) doneEvent,
+			sum(prpl.patrolMarkCnt) planCheckRiver,
+			sum(IFNULL(dr.drcnt,'0')) doneCheckRiver
+		from (
+			select
+				mdar.sortorder,
+				mdr.id reachid,
+				mdr.name reachname,
+				mdr.reachlevel,
+				mdrc.chairmanid,
+				su.name chairmanname,
+				mdrc.chairmanlevel
+			from
+				MD_ADMINREGION mdar
+			inner join
+				MD_REACH mdr on mdr.adminregionid = mdar.code and mdr.reachlevel = mdar.regionlevel and mdr.status = 1
+			inner join
+				MD_REACHCHAIRMAN mdrc on mdrc.reachid = mdr.id and mdrc.chairmanlevel = mdr.reachlevel and mdrc.status = 1
+			inner join
+				SM_USER su on su.id = mdrc.chairmanid and su.status = 1
+			inner join
+				SM_ROLE sr on sr.id = '262' and su.status = 1
+			inner join
+				SM_USERROLE sur on sur.USERID = su.id and sur.roleid = sr.id
+			where
+				INSTR(mdar.parents, @par) > 0
+			and mdar.regionlevel = @lvl
+		) m
+		left join (
+			select
+				eventreachid,
+				count(1) decnt
+			from
+				EH_EVENT
+			where
+				INSTR(status,'X') < 1
+			and INSTR(status,'T') < 1
+			and INSTR(status,'Z') > 0
+			and createtime BETWEEN @sd and @ed
+			group by
+				eventreachid
+		) de on de.eventreachid = m.reachid
+		left join (
+			select
+				eventreachid,
+				count(1) pecnt
+			from
+				EH_EVENT
+			where
+				INSTR(status,'X') < 1
+			and INSTR(status,'T') < 1
+			and createtime BETWEEN @sd and @ed
+			group by
+				eventreachid
+		) pe on pe.eventreachid = m.reachid
+		left join (
+			select
+				reach,
+				count(1) drcnt
+			from
+				MD_PATROLRECORD
+			where
+				createdate BETWEEN @sd and @ed
+			group by
+				reach
+		) dr on dr.reach = m.reachid
+		left join (
+			select
+				chairmanid,
+				count(1) dlcnt
+			from
+				LOG_WORKLOG
+			where
+				logdate BETWEEN @sd and @ed
+			group by
+				chairmanid
+		) dl on dl.chairmanid = m.chairmanid
+		left join (
+			select
+				rolelevel, 
+				IF(patrolmarkmonth IS NULL, IF(patrolmarkweek IS NULL, IF(patrolmarkday IS NULL, 0, patrolmarkday), patrolmarkweek), patrolmarkmonth) * IF(patrolmarkmonth IS NULL, IF(patrolmarkweek IS NULL, IF(patrolmarkday IS NULL, 0, @dn), @wn), @mn) patrolmarkcnt,
+				IF(worklogmarkmonth IS NULL, IF(worklogmarkweek IS NULL, IF(worklogmarkday IS NULL, 0, worklogmarkday), worklogMarkWeek), worklogmarkmonth) * IF(worklogmarkmonth IS NULL, IF(worklogmarkweek IS NULL, IF(worklogmarkday IS NULL, 0, @dn), @wn), @mn) worklogmarkcnt
+			from
+				AM_CHECK_STANDARD 
+			where
+				roleid = '262'
+		) prpl on prpl.rolelevel = m.chairmanlevel
+		group by
+			m.reachid,
+			m.chairmanid
+		order by
+			m.sortorder,
+			m.chairmanid
+////////////////////////////////////////////////////////////
+
+
+
+
+
+set @sd = '2017-12-14 00:00:00';
+set @ed = '2018-12-14 23:59:59';
+set @mn = 12;
+set @wn = 52;
+set @dn = 365;
+set @lvl = 3;
+set @par = '330700000000';
+
+
+select 
+m.reachid, m.reachname, m.reachlevel, m.chairmanid, m.chairmanname, m.chairmanlevel
+-- , sum(prpl.worklogMarkCnt) plcnt, sum(IFNULL(dl.dlcnt,'0')) dlcnt
+, sum(IFNULL(pe.pecnt,'0')) pecnt, sum(IFNULL(de.decnt,'0')) decnt
+, sum(prpl.patrolMarkCnt) prcnt, sum(IFNULL(dr.drcnt,'0')) drcnt
+from (
+select mdar.sortorder
+, mdr.id reachid, mdr.name reachname, mdr.reachlevel
+, mdrc.chairmanid, su.name chairmanname, mdrc.chairmanlevel
+from MD_ADMINREGION mdar
+inner join MD_REACH mdr on mdr.adminregionid = mdar.code and mdr.reachlevel = mdar.regionlevel and mdr.status = 1
+inner join MD_REACHCHAIRMAN mdrc on mdrc.reachid = mdr.id and mdrc.chairmanlevel = mdr.reachlevel and mdrc.status = 1
+inner join SM_USER su on su.id = mdrc.chairmanid and su.status = 1
+inner join SM_ROLE sr on sr.id = '262' and su.status = 1
+inner join SM_USERROLE sur on sur.USERID = su.id and sur.roleid = sr.id
+where INSTR(mdar.parents, @par) > 0 and mdar.regionlevel = @lvl
+) m
+left join (
+select eventreachid, count(1) decnt from EH_EVENT where INSTR(status,'X') < 1 and INSTR(status,'T') < 1 and INSTR(status,'Z') > 0 and createtime BETWEEN @sd AND @ed group by eventreachid
+) de on de.eventreachid = m.reachid
+left join (
+select eventreachid, count(1) pecnt from EH_EVENT where INSTR(status,'X') < 1 and INSTR(status,'T') < 1 and createtime BETWEEN @sd AND @ed group by eventreachid
+) pe on pe.eventreachid = m.reachid
+left join (
+select reach, count(1) drcnt from MD_PATROLRECORD where createdate BETWEEN @sd AND @ed group by reach
+) dr on dr.reach = m.reachid
+-- left join (
+-- select chairmanid, count(1) dlcnt from LOG_WORKLOG group by chairmanid
+-- ) dl on dl.chairmanid = m.chairmanid
+left join (
+select rolelevel, 
+IF(patrolmarkmonth IS NULL, IF(patrolmarkweek IS NULL, IF(patrolmarkday IS NULL, 0, patrolmarkday), patrolmarkweek), patrolmarkmonth) *
+IF(patrolmarkmonth IS NULL, IF(patrolmarkweek IS NULL, IF(patrolmarkday IS NULL, 0, @dn), @wn), @mn) patrolmarkcnt,
+IF(worklogmarkmonth IS NULL, IF(worklogmarkweek IS NULL, IF(worklogmarkday IS NULL, 0, worklogmarkday), worklogMarkWeek), worklogmarkmonth) *
+IF(worklogmarkmonth IS NULL, IF(worklogmarkweek IS NULL, IF(worklogmarkday IS NULL, 0, @dn), @wn), @mn) worklogmarkcnt
+from AM_CHECK_STANDARD 
+where roleid = '262'
+) prpl on prpl.rolelevel = m.chairmanlevel
+group by m.reachid, m.chairmanid 
+order by m.sortorder, m.chairmanid
+
+
+
+
+
+
+set @sd = '2017-12-14 00:00:00';
+set @ed = '2018-12-14 23:59:59';
+set @mn = 12;
+set @wn = 52;
+set @dn = 365;
+set @lvl = 3;
+set @par = '330700000000';
+
+
+select 
+m.regioncode, m.regionname, m.regionlevel 
+-- , sum(prpl.worklogMarkCnt) plcnt, sum(IFNULL(dl.dlcnt,'0')) dlcnt
+, sum(IFNULL(pe.pecnt,'0')) pecnt, sum(IFNULL(de.decnt,'0')) decnt
+, sum(prpl.patrolMarkCnt) prcnt, sum(IFNULL(dr.drcnt,'0')) drcnt
+from (
+select mdar.sortorder
+, mdr.id reachid, mdr.name reachname, mdr.reachlevel
+, mdrc.chairmanid, su.name chairmanname, mdrc.chairmanlevel
+from MD_ADMINREGION mdar
+inner join MD_REACH mdr on mdr.adminregionid = mdar.code and mdr.reachlevel = mdar.regionlevel and mdr.status = 1
+inner join MD_REACHCHAIRMAN mdrc on mdrc.reachid = mdr.id and mdrc.chairmanlevel = mdr.reachlevel and mdrc.status = 1
+inner join SM_USER su on su.id = mdrc.chairmanid and su.status = 1
+inner join SM_ROLE sr on sr.id = '262' and su.status = 1
+inner join SM_USERROLE sur on sur.USERID = su.id and sur.roleid = sr.id
+where INSTR(mdar.parents, @par) > 0 and mdar.regionlevel = @lvl
+) m
+left join (
+select eventoccurareaid areaid, count(1) decnt from EH_EVENT where INSTR(status,'X') < 1 and INSTR(status,'T') < 1 and INSTR(status,'Z') > 0 and createtime BETWEEN @sd AND @ed group by eventoccurareaid
+) de on de.areaid = m.regioncode
+left join (
+select eventoccurareaid areaid, count(1) pecnt from EH_EVENT where INSTR(status,'X') < 1 and INSTR(status,'T') < 1 and createtime BETWEEN @sd AND @ed group by eventoccurareaid
+) pe on pe.areaid = m.regioncode
+left join (
+select region, count(1) drcnt from MD_PATROLRECORD where createdate BETWEEN @sd AND @ed group by region
+) dr on dr.region = m.regioncode
+-- left join (
+-- select chairmanid, count(1) dlcnt from LOG_WORKLOG group by chairmanid
+-- ) dl on dl.chairmanid = m.chairmanid
+left join (
+select rolelevel, 
+IF(patrolmarkmonth IS NULL, IF(patrolmarkweek IS NULL, IF(patrolmarkday IS NULL, 0, patrolmarkday), patrolmarkweek), patrolmarkmonth) *
+IF(patrolmarkmonth IS NULL, IF(patrolmarkweek IS NULL, IF(patrolmarkday IS NULL, 0, @dn), @wn), @mn) patrolmarkcnt,
+IF(worklogmarkmonth IS NULL, IF(worklogmarkweek IS NULL, IF(worklogmarkday IS NULL, 0, worklogmarkday), worklogMarkWeek), worklogmarkmonth) *
+IF(worklogmarkmonth IS NULL, IF(worklogmarkweek IS NULL, IF(worklogmarkday IS NULL, 0, @dn), @wn), @mn) worklogmarkcnt
+from AM_CHECK_STANDARD 
+where roleid = '262'
+) prpl on prpl.rolelevel = m.regionlevel
+group by m.regioncode, m.regionname, m.regionlevel 
+order by m.sortorder
+
+
+
+
+
+河长履职统计
+chairman
+
+
+
+com.jhsw.statistics.entities.
+
+
+
+		String sTitle = "区域,应填/已填日志,日志完成率,应处理/已处理事件,事件结案率,应巡/已巡河道,巡河达标率";
+
+
+// 先把数据存入session 中
+request.getSession().setAttribute(Config.USER_SESSION_KEY, loginInfo);
+// 从session 中取数据
+LoginInfo loginInfo = (LoginInfo) request.getSession().getAttribute(Config.USER_SESSION_KEY);
+
+
+
+
+set @sd = '2017-12-14 00:00:00';
+set @ed = '2018-12-14 23:59:59';
+set @mn = 12;
+set @wn = 52;
+set @dn = 365;
+set @lvl = 2;
+set @par = '330000000000';
+
+
+select 
+m.regioncode, m.regionname, m.regionlevel 
+, sum(prpl.worklogMarkCnt) plcnt, sum(IFNULL(dl.dlcnt,'0')) dlcnt
+, sum(IFNULL(pe.pecnt,'0')) pecnt, sum(IFNULL(de.decnt,'0')) decnt
+, sum(prpl.patrolMarkCnt) prcnt, sum(IFNULL(dr.drcnt,'0')) drcnt
+from (
+select mdar.code regioncode, mdar.name regionname, mdar.regionlevel, mdar.parents, mdar.sortorder, mdr.id reachid, mdr.name reachname, mdrc.chairmanid
+from MD_ADMINREGION mdar
+inner join MD_REACH mdr on mdr.adminregionid = mdar.code and mdr.reachlevel = mdar.regionlevel and mdr.status = 1
+inner join MD_REACHCHAIRMAN mdrc on mdrc.reachid = mdr.id and mdrc.chairmanlevel = mdr.reachlevel and mdrc.status = 1
+where INSTR(mdar.parents, @par) > 0 and mdar.regionlevel = @lvl
+) m
+left join (
+select eventoccurareaid areaid, count(1) decnt from EH_EVENT where INSTR(status,'X') < 1 and INSTR(status,'T') < 1 and INSTR(status,'Z') > 0 and createtime BETWEEN @sd AND @ed group by eventoccurareaid
+) de on de.areaid = m.regioncode
+left join (
+select eventoccurareaid areaid, count(1) pecnt from EH_EVENT where INSTR(status,'X') < 1 and INSTR(status,'T') < 1 and createtime BETWEEN @sd AND @ed group by eventoccurareaid
+) pe on pe.areaid = m.regioncode
+left join (
+select region, count(1) drcnt from MD_PATROLRECORD where createdate BETWEEN @sd AND @ed group by region
+) dr on dr.region = m.regioncode
+left join (
+select chairmanid, count(1) dlcnt from LOG_WORKLOG group by chairmanid
+) dl on dl.chairmanid = m.chairmanid
+left join (
+select rolelevel, 
+IF(patrolmarkmonth IS NULL, IF(patrolmarkweek IS NULL, IF(patrolmarkday IS NULL, 0, patrolmarkday), patrolmarkweek), patrolmarkmonth) *
+IF(patrolmarkmonth IS NULL, IF(patrolmarkweek IS NULL, IF(patrolmarkday IS NULL, 0, @dn), @wn), @mn) patrolmarkcnt,
+IF(worklogmarkmonth IS NULL, IF(worklogmarkweek IS NULL, IF(worklogmarkday IS NULL, 0, worklogmarkday), worklogMarkWeek), worklogmarkmonth) *
+IF(worklogmarkmonth IS NULL, IF(worklogmarkweek IS NULL, IF(worklogmarkday IS NULL, 0, @dn), @wn), @mn) worklogmarkcnt
+from AM_CHECK_STANDARD 
+where roleid = '262'
+) prpl on prpl.rolelevel = m.regionlevel
+group by m.regioncode, m.regionname, m.regionlevel 
+
+
+
+
+
+
+set @sd = '2017-12-14 00:00:00';
+set @ed = '2018-12-14 23:59:59';
+set @mn = 12;
+set @wn = 52;
+set @dn = 365;
+
+
+select 
+m.regioncode, m.regionname, m.regionlevel 
+, sum(prpl.worklogMarkCnt) plcnt, sum(IFNULL(dl.dlcnt,'0')) dlcnt
+, sum(IFNULL(pe.pecnt,'0')) pecnt, sum(IFNULL(de.decnt,'0')) decnt
+, sum(prpl.patrolMarkCnt) prcnt, sum(IFNULL(dr.drcnt,'0')) drcnt
+from (
+select mdar.code regioncode, mdar.name regionname, mdar.regionlevel, mdar.parents, mdar.sortorder, mdr.id reachid, mdr.name reachname, mdrc.chairmanid
+from MD_ADMINREGION mdar
+inner join MD_REACH mdr on mdr.adminregionid = mdar.code and mdr.reachlevel = mdar.regionlevel and mdr.status = 1
+inner join MD_REACHCHAIRMAN mdrc on mdrc.reachid = mdr.id and mdrc.chairmanlevel = mdr.reachlevel and mdrc.status = 1
+where mdar.regionlevel = 2
+) m
+left join (
+select eventoccurareaid areaid, count(1) decnt from EH_EVENT where INSTR(status,'X') < 1 and INSTR(status,'T') < 1 and INSTR(status,'Z') > 0 and createtime BETWEEN @sd AND @ed group by eventoccurareaid
+) de on de.areaid = m.regioncode
+left join (
+select eventoccurareaid areaid, count(1) pecnt from EH_EVENT where INSTR(status,'X') < 1 and INSTR(status,'T') < 1 and createtime BETWEEN @sd AND @ed group by eventoccurareaid
+) pe on pe.areaid = m.regioncode
+left join (
+select region, count(1) drcnt from MD_PATROLRECORD where createdate BETWEEN @sd AND @ed group by region
+) dr on dr.region = m.regioncode
+left join (
+select chairmanid, count(1) dlcnt from LOG_WORKLOG group by chairmanid
+) dl on dl.chairmanid = m.chairmanid
+left join (
+select rolelevel, 
+IF(patrolmarkmonth IS NULL, IF(patrolmarkweek IS NULL, IF(patrolmarkday IS NULL, 0, patrolmarkday), patrolmarkweek), patrolmarkmonth) *
+IF(patrolmarkmonth IS NULL, IF(patrolmarkweek IS NULL, IF(patrolmarkday IS NULL, 0, @dn), @wn), @mn) patrolmarkcnt,
+IF(worklogmarkmonth IS NULL, IF(worklogmarkweek IS NULL, IF(worklogmarkday IS NULL, 0, worklogmarkday), worklogMarkWeek), worklogmarkmonth) *
+IF(worklogmarkmonth IS NULL, IF(worklogmarkweek IS NULL, IF(worklogmarkday IS NULL, 0, @dn), @wn), @mn) worklogmarkcnt
+from AM_CHECK_STANDARD 
+where roleid = '262'
+) prpl on prpl.rolelevel = m.regionlevel
+group by m.regioncode, m.regionname, m.regionlevel 
+
+
+
+
+
+
+
+
+set @sd = '2017-12-14 00:00:00';
+set @ed = '2018-12-14 23:59:59';
+set @mn = 12;
+set @wn = 52;
+set @dn = 365;
+
+
+select 
+m.regioncode, m.regionname, m.regionlevel 
+, prpl.worklogMarkCnt plcnt, IFNULL(dl.dlcnt,'0') dlcnt
+, IFNULL(pe.pecnt,'0') pecnt, IFNULL(de.decnt,'0') decnt
+, prpl.patrolMarkCnt prcnt, IFNULL(dr.drcnt,'0') drcnt
+from (
+select mdar.code regioncode, mdar.name regionname, mdar.regionlevel, mdar.parents, mdar.sortorder, mdr.id reachid, mdr.name reachname, mdrc.chairmanid
+from MD_ADMINREGION mdar
+inner join MD_REACH mdr on mdr.adminregionid = mdar.code and mdr.reachlevel = mdar.regionlevel and mdr.status = 1
+inner join MD_REACHCHAIRMAN mdrc on mdrc.reachid = mdr.id and mdrc.chairmanlevel = mdr.reachlevel and mdrc.status = 1
+where mdar.regionlevel = 2
+) m
+left join (
+select eventoccurareaid areaid, count(1) decnt from EH_EVENT where INSTR(status,'X') < 1 and INSTR(status,'T') < 1 and INSTR(status,'Z') > 0 and createtime BETWEEN @sd AND @ed group by eventoccurareaid
+) de on de.areaid = m.regioncode
+left join (
+select eventoccurareaid areaid, count(1) pecnt from EH_EVENT where INSTR(status,'X') < 1 and INSTR(status,'T') < 1 and createtime BETWEEN @sd AND @ed group by eventoccurareaid
+) pe on pe.areaid = m.regioncode
+left join (
+select region, count(1) drcnt from MD_PATROLRECORD where createdate BETWEEN @sd AND @ed group by region
+) dr on dr.region = m.regioncode
+left join (
+select chairmanid, count(1) dlcnt from LOG_WORKLOG group by chairmanid
+) dl on dl.chairmanid = m.chairmanid
+left join (
+select rolelevel, 
+IF(patrolmarkmonth IS NULL, IF(patrolmarkweek IS NULL, IF(patrolmarkday IS NULL, 0, patrolmarkday), patrolmarkweek), patrolmarkmonth) *
+IF(patrolmarkmonth IS NULL, IF(patrolmarkweek IS NULL, IF(patrolmarkday IS NULL, 0, @dn), @wn), @mn) patrolmarkcnt,
+IF(worklogmarkmonth IS NULL, IF(worklogmarkweek IS NULL, IF(worklogmarkday IS NULL, 0, worklogmarkday), worklogMarkWeek), worklogmarkmonth) *
+IF(worklogmarkmonth IS NULL, IF(worklogmarkweek IS NULL, IF(worklogmarkday IS NULL, 0, @dn), @wn), @mn) worklogmarkcnt
+from AM_CHECK_STANDARD 
+where roleid = '262'
+) prpl on prpl.rolelevel = m.regionlevel
+
+
+
+
+select chairmanid, count(1) dlcnt 
+from LOG_WORKLOG 
+force index(I_LOG_WORKLOG_LOGDATE)
+where logdate BETWEEN '2017-12-14 00:00:00' AND '2018-12-14 23:59:59' 
+group by chairmanid
+
+
+EXPLAIN select chairmanid,logdate, count(chairmanid) dlcnt from LOG_WORKLOG
+force index(I_LOG_WORKLOG_CHAIRMANID,I_LOG_WORKLOG_LOGDATE)
+where logdate BETWEEN @sd AND @ed
+group by chairmanid,logdate;
+
+
+set @sd = '2017-12-14';
+set @ed = '2018-12-14';
+
+-- select TIMESTAMP(@sd)>=TIMESTAMP(@ed),TIMESTAMP(@sd)>=TIMESTAMP(@dt),TIMESTAMP(@dt)>TIMESTAMP(@ed);
+
+select TIMESTAMP(@dt) BETWEEN TIMESTAMP(@sd) AND TIMESTAMP(@ed);
+
+(`ctime` BETWEEN '2017-09-11 09:34:13'  AND '2017-10-11 09:34:13')
+
+
+添加期间检索条件	是否需要	字段
+MD_ADMINREGION		否		创建时间	修改时间	生效时间
+MD_REACH		否		创建时间	修改时间	治理时间	审核时间	生效时间
+MD_REACHCHAIRMAN	否		创建时间	修改时间	生效时间
+EH_EVENT		是		事件发生时间createtime	上报时间reporttime
+MD_PATROLRECORD		是		创建时间createdate
+LOG_WORKLOG		是		日志时间logdate
+AM_CHECK_STANDARD	是		
+
+
+
+
+select 
+m.regioncode, m.regionname, m.regionlevel 
+, prpl.worklogMarkCnt, prpl.worklogMarkUnit
+, dl.dlcnt
+, pe.pecnt, de.decnt
+, prpl.patrolMarkCnt, prpl.patrolMarkUnit
+, dr.drcnt
+
+from (
+select mdar.code regioncode, mdar.name regionname, mdar.regionlevel, mdar.parents, mdar.sortorder, mdr.id reachid, mdr.name reachname, mdrc.chairmanid
+from MD_ADMINREGION mdar
+inner join MD_REACH mdr on mdr.adminregionid = mdar.code and mdr.reachlevel = mdar.regionlevel and mdr.status = 1
+inner join MD_REACHCHAIRMAN mdrc on mdrc.reachid = mdr.id and mdrc.chairmanlevel = mdr.reachlevel and mdrc.status = 1
+where mdar.regionlevel = 2
+) m
+left join (
+select eventoccurareaid areaid, count(1) decnt from EH_EVENT where INSTR(status,'X') < 1 and INSTR(status,'T') < 1 and INSTR(status,'Z') > 0 group by eventoccurareaid
+) de on de.areaid = m.regioncode
+left join (
+select eventoccurareaid areaid, count(1) pecnt from EH_EVENT where INSTR(status,'X') < 1 and INSTR(status,'T') < 1 group by eventoccurareaid
+) pe on pe.areaid = m.regioncode
+left join (
+select region, count(1) drcnt from MD_PATROLRECORD group by region
+) dr on dr.region = m.regioncode
+left join (
+select chairmanid, count(1) dlcnt from LOG_WORKLOG group by chairmanid
+) dl on dl.chairmanid = m.chairmanid
+left join (
+select rolelevel, 
+IF(patrolmarkmonth IS NULL, IF(patrolmarkweek IS NULL, IF(patrolmarkday IS NULL, 0, patrolmarkday), patrolmarkweek), patrolmarkmonth) patrolmarkcnt,
+IF(patrolmarkmonth IS NULL, IF(patrolmarkweek IS NULL, IF(patrolmarkday IS NULL, 'D', 'D'), 'W'), 'M') patrolmarkunit,
+IF(worklogmarkmonth IS NULL, IF(worklogmarkweek IS NULL, IF(worklogmarkday IS NULL, 0, worklogmarkday), worklogMarkWeek), worklogmarkmonth) worklogmarkcnt,
+IF(worklogmarkmonth IS NULL, IF(worklogmarkweek IS NULL, IF(worklogmarkday IS NULL, 'D', 'D'), 'W'), 'M') worklogmarkunit
+from AM_CHECK_STANDARD 
+where roleid = '262'
+) prpl on prpl.rolelevel = m.regionlevel
+
+
+
+
+
+
+
+------------------------------------------------------------
+2018/12/13 9:08
+
+
+
+
+
+
+am_check_standard表中定义的是每月，每周，每天的“应填日志和应巡河道”，
+如果检索条件中不指定开始日期和结束日期的情况下，默认时间段设定成什么？
+或者把检索条件中的“开始日期和结束日期”设定一个默认值，并设置成必须输入。
+
+－－根据兔子回答：结束日期没输入时设置为本日，开始日期没输入时报错必须输入。
+
+
+
+-- 区域 应填/已填日志 日志完成率 应处理/已处理事件 事件结案率 应巡/已巡河道 巡河达标率
+
+select 
+* 
+from (
+select mdar.code regioncode, mdar.name regionname, mdar.regionlevel, mdar.parents, mdar.sortorder, mdr.id reachid, mdr.name reachname, mdrc.chairmanid
+from MD_ADMINREGION mdar
+inner join MD_REACH mdr on mdr.adminregionid = mdar.code and mdr.reachlevel = mdar.regionlevel and mdr.status = 1
+inner join MD_REACHCHAIRMAN mdrc on mdrc.reachid = mdr.id and mdrc.chairmanlevel = mdr.reachlevel and mdrc.status = 1
+where mdar.regionlevel = 2
+) m
+left join (
+select eventoccurareaid areaid, count(1) decnt from eh_event where INSTR(status,'X') < 1 and INSTR(status,'T') < 1 and INSTR(status,'Z') > 0 group by eventoccurareaid
+) de on de.areaid = m.regionCode
+left join (
+select eventoccurareaid areaid, count(1) pecnt from eh_event where INSTR(status,'X') < 1 and INSTR(status,'T') < 1 group by eventoccurareaid
+) pe on pe.areaid = m.regionCode
+left join (
+select mdp.region, count(1) drcnt from MD_PATROLRECORD mdp group by mdp.region
+) dr on dr.region = m.regioncode
+left join (
+select chairmanid, reachid, count(1) dlcnt from LOG_WORKLOG group by chairmanid, reachid
+) dl on dl.chairmanid = m.chairmanid and  dl.reachid = m.reachid
+
+
+
+
+
+
+select amcs.rolelevel, 
+IF(amcs.patrolMarkMonth IS NULL, IF(amcs.patrolMarkWeek IS NULL, IF(amcs.patrolMarkDay IS NULL, 0, amcs.patrolMarkDay), amcs.patrolMarkWeek), amcs.patrolMarkMonth) patrolMarkCnt,
+IF(amcs.patrolMarkMonth IS NULL, IF(amcs.patrolMarkWeek IS NULL, IF(amcs.patrolMarkDay IS NULL, 'D', 'D'), 'W'), 'M') patrolMarkUnit,
+IF(amcs.worklogMarkMonth IS NULL, IF(amcs.worklogMarkWeek IS NULL, IF(amcs.worklogMarkDay IS NULL, 0, amcs.worklogMarkDay), amcs.worklogMarkWeek), amcs.worklogMarkMonth) worklogMarkCnt,
+IF(amcs.worklogMarkMonth IS NULL, IF(amcs.worklogMarkWeek IS NULL, IF(amcs.worklogMarkDay IS NULL, 'D', 'D'), 'W'), 'M') worklogMarkUnit
+from am_check_standard amcs where amcs.roleId = '262'
+
+select rolelevel, 
+IF(patrolmarkmonth IS NULL, IF(patrolmarkweek IS NULL, IF(patrolmarkday IS NULL, 0, patrolmarkday), patrolmarkweek), patrolmarkmonth) *
+IF(patrolmarkmonth IS NULL, IF(patrolmarkweek IS NULL, IF(patrolmarkday IS NULL, 0, @dn), @wn), @mn) patrolmarkcnt,
+IF(worklogmarkmonth IS NULL, IF(worklogmarkweek IS NULL, IF(worklogmarkday IS NULL, 0, worklogmarkday), worklogMarkWeek), worklogmarkmonth) *
+IF(worklogmarkmonth IS NULL, IF(worklogmarkweek IS NULL, IF(worklogmarkday IS NULL, 0, @dn), @wn), @mn) worklogmarkcnt
+from AM_CHECK_STANDARD 
+where roleid = '262'
+
+
+select mdar.code regionCode, mdar.name regionName, mdar.regionLevel, mdar.parents, mdar.sortorder, mdr.code reachCode, mdr.name reachName
+from MD_AdminRegion mdar
+inner join md_reach mdr on mdr.ADMINREGIONID = mdar.code and mdr.ReachLevel = mdar.regionLevel
+where mdar.regionLevel = 2
+
+
+
+
+
+AdminRegionID	所属行政区域标识有NULL记录
+
+
+
+select code, name, regionLevel, parents, sortorder from MD_AdminRegion where INSTR(parents, '330700000000') > 0 and regionLevel = 3 order by sortorder
+
+
+
+PROVINCE
+
+列表内容：
+1 由检索条件查询出行政区域内的“区域，河道，河道长”，作为主表；
+
+select mdar.code regioncode, mdar.name regionname, mdar.regionlevel, mdar.parents, mdar.sortorder, mdr.id reachid, mdr.name reachname, mdrc.chairmanid
+from MD_ADMINREGION mdar
+inner join MD_REACH mdr on mdr.adminregionid = mdar.code and mdr.reachlevel = mdar.regionlevel and mdr.status = 1
+inner join MD_REACHCHAIRMAN mdrc on mdrc.reachid = mdr.id and mdrc.chairmanlevel = mdr.reachlevel and mdrc.status = 1
+where mdar.regionlevel = 2
+
+
+
+2 从am_check_standard表中查询“应填日志”和“应巡河道”；
+
+select rolelevel, 
+IF(patrolMarkMonth IS NULL, IF(patrolMarkWeek IS NULL, IF(patrolMarkDay IS NULL, 0, patrolMarkDay), patrolMarkWeek), patrolMarkMonth) patrolMarkCnt,
+IF(patrolMarkMonth IS NULL, IF(patrolMarkWeek IS NULL, IF(patrolMarkDay IS NULL, 'D', 'D'), 'W'), 'M') patrolMarkUnit,
+IF(worklogMarkMonth IS NULL, IF(worklogMarkWeek IS NULL, IF(worklogMarkDay IS NULL, 0, worklogMarkDay), worklogMarkWeek), worklogMarkMonth) worklogMarkCnt,
+IF(worklogMarkMonth IS NULL, IF(worklogMarkWeek IS NULL, IF(worklogMarkDay IS NULL, 'D', 'D'), 'W'), 'M') worklogMarkUnit
+from am_check_standard 
+where roleId = '262'
+
+set @mn = 12;
+set @wn = 52;
+set @dn = 365;
+
+select rolelevel, 
+IF(patrolmarkmonth IS NULL, IF(patrolmarkweek IS NULL, IF(patrolmarkday IS NULL, 0, patrolmarkday), patrolmarkweek), patrolmarkmonth) *
+IF(patrolmarkmonth IS NULL, IF(patrolmarkweek IS NULL, IF(patrolmarkday IS NULL, 0, @dn), @wn), @mn) patrolmarkcnt,
+IF(worklogmarkmonth IS NULL, IF(worklogmarkweek IS NULL, IF(worklogmarkday IS NULL, 0, worklogmarkday), worklogMarkWeek), worklogmarkmonth) *
+IF(worklogmarkmonth IS NULL, IF(worklogmarkweek IS NULL, IF(worklogmarkday IS NULL, 0, @dn), @wn), @mn) worklogmarkcnt
+from AM_CHECK_STANDARD 
+where roleid = '262'
+
+
+
+3 从eh_event表中查询“应处理事件”和“已处理事件”；
+
+select eventoccurareaid, count(1) doneEventCnt from eh_event where INSTR(status,'X') < 1 and INSTR(status,'T') < 1 and INSTR(status,'Z') > 0 group by eventoccurareaid;
+select eventoccurareaid, count(1) planEventCnt from eh_event where INSTR(status,'X') < 1 and INSTR(status,'T') < 1 group by eventoccurareaid;
+
+
+
+4 从MD_PATROLRECORD表中查询“已巡河道”；
+
+select mdp.region, count(1) cnt from MD_PATROLRECORD mdp group by mdp.region
+
+
+5 从LOG_WORKLOG表中查询“已填日志”；
+
+select dl.chairmanid, dl.reachid, count(1) dlcnt from LOG_WORKLOG dl group by dl.chairmanid, dl.reachid
+
+
+
+6 以检索条件中最小行政区域单位的下一级行政区域分组统计“应填、已填日志，应处理、已处理事件，应巡、已巡河道”；
+7 最后总计。
+
+
+
+
+
+图表内容：
+
+
+------------------------------------------------------------
+2018/12/12 9:08
+
+
+
+
+
+业务问题找谁交接？
+
+应填、已填日志，应处理、已处理事件，应巡、已巡河道
+这六个业务逻辑在数据库中的体现是怎么样的？
+
+比如：
+
+应填日志的主表是什么？有没有关联副表？关联条件是什么？
+应填日志变成已填日志是什么字段发生了变化？
+
+应处理事件的主表是什么？有没有关联副表？关联条件是什么？
+应处理事件变成已处理事件是什么字段发生了变化？
+
+应巡河道的主表是什么？有没有关联副表？关联条件是什么？
+应巡河道变成已巡河道是什么字段发生了变化？
+
+
+
+河道基础信息统计
+	基础信息的统计中应该不需要日期期间的检索条件，如果需要，以什么时间作为检索条件？
+
+列表：
+河道名称。
+级别。
+河长。
+排污口。
+随手拍
+	数据库里没有，以什么作为统计规则？
+公示牌
+	表字段与数据库中不一致？只需要按河道ID统计？
+一河一档
+	在数据库中是怎么体现的？数据库里只有“一河一档文件路径”这一个相关字段。
+一河一策
+	同上。
+档案策略
+	河道档案表与治河策略表两张表，按河道ID统计总数？
+畜禽养殖场
+	5.3.15.	部件类型表（MD_ComponentType）
+		10000000000000000000000000000000	1	污染源		10000000000000000000000000000000		W
+		10040000000000000000000000000000	1	畜禽养殖	/images/sign/pollution/cultivation.png	10000000000000000000000000000000|10040000000000000000000000000000		W
+	5.3.16.	养殖类型表（MD_	CultivationType）
+	5.3.21.	部件表(MD_Component)
+	部件表中主类型为污染源，子类型为畜禽养殖的记录为统计对象？
+处理设施
+	处理设施是指处理什么情况的设施？
+		参照部件类型表：
+	5.3.15.	部件类型表（MD_ComponentType）
+		10000000000000000000000000000000	1	污染源		10000000000000000000000000000000		W
+		10010000000000000000000000000000	1	工业污染源	/images/sign/pollution/industrial.png	10000000000000000000000000000000|10010000000000000000000000000000		W
+		10020000000000000000000000000000	1	农业污染源	/images/sign/pollution/agricultural.png	10000000000000000000000000000000|10020000000000000000000000000000		W
+		10030000000000000000000000000000	1	生活污染源	/images/sign/pollution/life.png	10000000000000000000000000000000|10030000000000000000000000000000		W
+		10040000000000000000000000000000	1	畜禽养殖	/images/sign/pollution/cultivation.png	10000000000000000000000000000000|10040000000000000000000000000000		W
+		20000000000000000000000000000000	1	排污口		20000000000000000000000000000000		W
+		20010000000000000000000000000000	1	企业排污口	/images/sign/outsewage/outfall.png	20000000000000000000000000000000|20010000000000000000000000000000		W
+		30000000000000000000000000000000	1	监测类		30000000000000000000000000000000		W
+		30030000000000000000000000000000	1	监控摄像头	/images/sign/monitor/camera.png	30000000000000000000000000000000|30030000000000000000000000000000		W
+		30040000000000000000000000000000	1	监测断面	/images/sign/monitor/jcdm	30000000000000000000000000000000|30040000000000000000000000000000		W
+		30050000000000000000000000000000	1	河道照片	/images/sign/monitor/pic.png	30000000000000000000000000000000|30050000000000000000000000000000		R
+		30070000000000000000000000000000	1	饮用水源地	/images/sign/drink/drink.png	30000000000000000000000000000000|30050000000000000000000000000000		W
+		30090000000000000000000000000000	1	监测河道水质		30000000000000000000000000000000|30090000000000000000000000000000		W
+		40000000000000000000000000000000	1	水文水利		40000000000000000000000000000000		W
+		40010000000000000000000000000000	1	泵站	/images/sign/shuili/bengzhan.png	40000000000000000000000000000000|40010000000000000000000000000000		
+		40020000000000000000000000000000	1	水闸	/images/sign/shuili/shuizha.png	40000000000000000000000000000000|40020000000000000000000000000000		
+		40030000000000000000000000000000	1	水文站	/images/sign/shuili/shuiwen.png	40000000000000000000000000000000|40030000000000000000000000000000		
+		40040000000000000000000000000000	1	监测站	/images/sign/shuili/jiance.png	40000000000000000000000000000000|40040000000000000000000000000000		
+		40050000000000000000000000000000	1	水位站	/images/sign/shuili/shuiwei.png	40000000000000000000000000000000|40050000000000000000000000000000		W
+		40060000000000000000000000000000	1	岸线利用	/images/sign/shuili/axly.png	40000000000000000000000000000000|40060000000000000000000000000000		W
+		50000000000000000000000000000000	1	河道设施		50000000000000000000000000000000		R
+		60000000000000000000000000000000	1	治污项目		60000000000000000000000000000000		R
+		60010000000000000000000000000000	1	工业污染治理	/images/sign/project/building.png	60000000000000000000000000000000|60010000000000000000000000000000		R
+		60020000000000000000000000000000	1	污水处理等基础设施建设	/images/sign/project/building.png	60000000000000000000000000000000|60020000000000000000000000000000		R
+		60030000000000000000000000000000	1	农村生活污水治理	/images/sign/project/building.png	60000000000000000000000000000000|60030000000000000000000000000000		R
+		60040000000000000000000000000000	1	水产养殖塘生态化改造	/images/sign/project/building.png	60000000000000000000000000000000|60040000000000000000000000000000		R
+		60050000000000000000000000000000	1	稻鱼轮作共生减排	/images/sign/project/building.png	60000000000000000000000000000000|60050000000000000000000000000000		R
+		60060000000000000000000000000000	1	禁养限养区划定和整治	/images/sign/project/building.png	60000000000000000000000000000000|60060000000000000000000000000000		R
+		60070000000000000000000000000000	1	水产养殖污染治理	/images/sign/project/building.png	60000000000000000000000000000000|60070000000000000000000000000000		R
+		60080000000000000000000000000000	1	河道整治	/images/sign/project/building.png	60000000000000000000000000000000|60080000000000000000000000000000		R
+		60090000000000000000000000000000	1	饮用水源保护	/images/sign/project/building.png	60000000000000000000000000000000|60090000000000000000000000000000		R
+		60100000000000000000000000000000	1	生态环境保护工程	/images/sign/project/building.png	60000000000000000000000000000000|60100000000000000000000000000000		R
+		60110000000000000000000000000000	1	监测能力建设	/images/sign/project/building.png	60000000000000000000000000000000|60110000000000000000000000000000		R
+		60120000000000000000000000000000	1	船舶垃圾、油污水接收点	/images/sign/project/building.png	60000000000000000000000000000000|60120000000000000000000000000000		R
+		60130000000000000000000000000000	1	废弃矿井治理	/images/sign/project/building.png	60000000000000000000000000000000|60130000000000000000000000000000		R
+		60140000000000000000000000000000	1	农业面源污染治理	/images/sign/project/building.png	60000000000000000000000000000000|60140000000000000000000000000000		R
+		70000000000000000000000000000000	1	河道设施		70000000000000000000000000000000		W
+		70010000000000000000000000000000	1	河道公示牌	/images/sign/monitor/pic.png	70000000000000000000000000000000|70010000000000000000000000000000		W
+		80000000000000000000000000000000	1	治污单位		80000000000000000000000000000000		W
+		80010000000000000000000000000000	1	污水处理厂	/images/sign/huanbao/wsclc.png	80000000000000000000000000000000|80010000000000000000000000000000		W
+		80020000000000000000000000000000	1	农村污水处理设施	/images/sign/huanbao/wsclcs.png	80000000000000000000000000000000		R
+		90000000000000000000000000000000	1	砂区		90000000000000000000000000000000		
+		90010000000000000000000000000000	1	采砂区	/images/sign/shaqu/caisha.png	90000000000000000000000000000000|90010000000000000000000000000000		
+		90020000000000000000000000000000	1	禁采区		90000000000000000000000000000000|90020000000000000000000000000000		
+
+	5.3.21.	部件表(MD_Component)
+		部件表中，主类型和子类型为何类型时，作为统计对象？
+	下面三张表数据库中无：
+		5.3.17.	生活污染源处理方式表（MD_TreatmentOfLifePollution）
+		5.3.18.	工业污染源处理方式表（MD_TreatmentOfIndusPollution）
+		5.3.19.	生活污染源处理方式表（MD_TreatmentOfLifePollution）
+	因此，下面三张表无法统计（这三张表中处理方式为“2设施处理”的记录）；
+		5.3.22.	工业污染源（MD_IndusPollution）
+		5.3.23.	农业污染源（MD_AgriPollution）
+		5.3.24.	生活污染源（MD_LifePollution）
+
+状态是否只统计河道表中状态为“1：启用”的信息。
+
+
+区域基础信息统计
+
+
+行政区域。
+标绘河道
+	河道表中关联行政区域表内的河道统计
+市/县/镇级河长
+	？没有村级河长人数统计？
+	检索条件中选择的行政级别的下属三个级别的河长人数统计？
+工作人员
+	河道河长关联表中关联行政区域的河长
+	用户表中关联行政区域所属的职务为？？？的用户
+	但是，5.3.7.	职员职务表（MD_Duty）数据库中无，如何确定用户职务？
+保洁员
+	用户表中关联行政区域所属的职务为“保洁员”的用户
+	但是，5.3.7.	职员职务表（MD_Duty）数据库中无，如何确定用户职务？
+一河一档
+	同河道基础信息统计
+一河一策
+	同河道基础信息统计
+公示牌
+	同河道基础信息统计
+污染源
+	5.3.15.	部件类型表（MD_ComponentType）
+		10000000000000000000000000000000	1	污染源		10000000000000000000000000000000		W
+	5.3.21.	部件表(MD_Component)
+	部件表中主类型为污染源的记录为统计对象？
+污水处理厂
+	5.3.15.	部件类型表（MD_ComponentType）
+		80000000000000000000000000000000	1	治污单位		80000000000000000000000000000000		W
+		80010000000000000000000000000000	1	污水处理厂	/images/sign/huanbao/wsclc.png	80000000000000000000000000000000|80010000000000000000000000000000		W
+	5.3.21.	部件表(MD_Component)
+	部件表中，主类型为“治污单位”，子类型为“污水处理厂”的记录作为统计对象？
+监控摄像头
+	5.3.15.	部件类型表（MD_ComponentType）
+		30000000000000000000000000000000	1	监测类		30000000000000000000000000000000		W
+		30030000000000000000000000000000	1	监控摄像头	/images/sign/monitor/camera.png	30000000000000000000000000000000|30030000000000000000000000000000		W
+	5.3.21.	部件表(MD_Component)
+	部件表中，主类型为“监测类”，子类型为“监控摄像头”的记录作为统计对象？
+监测断面
+	5.3.15.	部件类型表（MD_ComponentType）
+		30000000000000000000000000000000	1	监测类		30000000000000000000000000000000		W
+		30040000000000000000000000000000	1	监测断面	/images/sign/monitor/jcdm	30000000000000000000000000000000|30040000000000000000000000000000		W
+	5.3.21.	部件表(MD_Component)
+	部件表中，主类型为“监测类”，子类型为“监测断面”的记录作为统计对象？
+
+
+河长履职统计
+
+
+河长
+级别
+河道名称
+应填/已填日志
+	应填日志：
+		应填日志来源？
+	已填日志：
+		5.8.1.	工作日志表 LOG_WORKLOG
+日志完成率%
+	应填/已填比率
+	需要到小数点几位？
+应处理/已处理事件
+	事件状态：
+		A事件上报(基础河长)
+		B待受理件 (值班员)
+		C待核实(基层河长)
+		D确认核实(确认核实人员/值班员)
+		E待派单(值班员)
+		F待处理(职能部门)
+		G待处理反馈/已处理(值班员)
+		H待审核(基层河长)
+		I待结案(值班员)
+		Z 已结案
+		T事务锁定状态 用于锁定修改事务
+		X 无效事件 (值班员) 
+
+	应处理：事件发生时间与事件结束时间在检索条件的时间期间内的事件状态为已结案以前的事件
+	已处理：事件状态为已结案的事件
+
+事件结案率%
+	应处理/已处理比率
+应巡/已巡河道
+	应巡河道：
+		5.3.12.	河道河长关联表(MD_ReachChairman)中关联的河道为统计对象。
+	已巡河道：
+		5.3.48.	巡查记录表MD_PATROLRECORD，数据库中，行政区域和河道都是null，如何关联到河道？
+巡河达标率%
+	应巡/已巡比率
+
+
+区域履职统计
+同河长履职统计
+
+
+
+------------------------------------------------------------
+2018/12/11 15:38
+
+
+
+
+5.3.2.	行政区域表（MD_AdminRegion）
+5.3.11.	河道表（MD_Reach）
+5.3.12.	河道河长关联表(MD_ReachChairman)
+5.3.13.	河道档案表(MD_ReachFile)
+5.3.14.	治河策略表(MD_Strategy)
+5.3.36.	事件表(EH_Event)
+5.3.37.	待处理任务表(EH_task)
+5.3.48.	巡查记录表MD_PATROLRECORD
+5.8.1.	工作日志表 LOG_WORKLOG
+
+
+
+Command line instructions 
+
+
+
+Git global setup
+git config --global user.name "yuqinyi"
+git config --global user.email "yuqinyi@hotmail.com"
+
+
+
+Create a new repository
+git clone http://10.0.0.85/dongzhong/doc.git
+cd doc
+touch README.md
+git add README.md
+git commit -m "add README"
+git push -u origin master
+
+
+Existing folder
+cd existing_folder
+git init
+git remote add origin http://10.0.0.85/dongzhong/doc.git
+git add .
+git commit -m "Initial commit"
+git push -u origin master
+
+
+Existing Git repository
+cd existing_repo
+git remote rename origin old-origin
+git remote add origin http://10.0.0.85/dongzhong/doc.git
+git push -u origin --all
+git push -u origin --tags
+
+
+env configuration

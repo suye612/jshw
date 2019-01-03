@@ -1,0 +1,57 @@
+spring:
+  application:
+    name: jhsw
+  datasource:
+    type: com.alibaba.druid.pool.DruidDataSource
+    url: jdbc:mysql://101.71.0.58:3306/hzz?useUnicode=true&characterEncoding=utf-8&useSSL=false
+    username: root
+    password: HzzJH_0816A
+#    url: jdbc:mysql://10.0.0.250:3307/hzz-jinhuabak?useUnicode=true&characterEncoding=utf-8&useSSL=false
+#    username: dongzhong
+#    password: dongzhong
+#    url: jdbc:mysql://localhost:3306/hzz-jinhuabak?useUnicode=true&characterEncoding=utf-8&useSSL=false
+#    username: root
+#    password: root
+#    url: jdbc:mysql://jhsw.mysqldb.chinacloudapi.cn:3306/hzz-jinhuabak?useUnicode=true&characterEncoding=utf-8&useSSL=false
+#    username: jhsw%jhsw
+#    password: QWEqwe123
+    driver-class-name: com.mysql.jdbc.Driver
+    max-idle: 5
+    max-wait: 60000
+    maxWait: 60000
+    min-idle: 5
+    minIdle: 5
+    maxActive: 20
+    initial-size: 5
+    initialSize: 5
+    validation-query: SELECT 1
+    timeBetweenEvictionRunsMillis: 60000
+    minEvictableIdleTimeMillis: 300000
+    validationQuery: SELECT 1
+    testWhileIdle: true
+    testOnBorrow: false
+    testOnReturn: false
+    poolPreparedStatements: true
+    maxPoolPreparedStatementPerConnectionSize: 20
+    filters: stat,wall,log4j
+    connectionProperties: druid.stat.mergeSql=true;druid.stat.slowSqlMillis=5000
+    useGlobalDataSourceStat: true
+    jdbc-interceptors: ConnectionState;SlowQueryReport(threshold=50)
+
+mybatis:
+  mapper-locations: classpath:mapper/*.xml
+  type-aliases-package: com.jhsw.statistics.enttities
+  configuration:
+    map-underscore-to-camel-case: true
+
+thymeleaf:
+  cache: false
+  cache-period: 0
+  prefix: classpath:/templates/
+template:
+  cache: false
+
+server:
+  port: 8001
+  tomcat:
+    uri-encoding: UTF-8

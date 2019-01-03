@@ -1,0 +1,324 @@
+@charset "utf-8";
+.content{
+    position: absolute;
+    padding: 20px;
+    overflow-x: auto;
+    /*min-width: 1200px;*/
+    padding-top: 0;
+}
+::-webkit-scrollbar{
+    width: 2px;
+    background: none;
+}
+.main{
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    margin-bottom: 85px;
+    border-radius: 5px;
+    background: #fff;
+}
+.content-up{
+    flex-direction: row;
+    display: flex;
+    margin: 20px;
+}
+.content-up-left{
+    width: 80%;
+    display: flex;
+    flex-direction: column;
+}
+.content-up-left-item{
+    display: flex;
+    flex-direction: row;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+.content-up-left-e{
+    display: flex;
+    flex-direction: row;
+}
+.content-up-left-e select{
+    width: 130px;
+    height: 38px;
+    border-radius: 3px;
+    padding-left: 10px;
+}
+.content-up-left-e span{
+    line-height: 38px;
+    margin-left: 5px;
+    margin-right: 5px;
+}
+.content-up-right{
+    width: 20%;
+    position: relative;
+}
+.content-up-right input{
+    width: 220px;
+    height: 38px;
+    line-height: 38px;
+    border-radius: 3px;
+    border: 1px solid #6c757d;
+    padding-left: 38px;
+}
+.content-up-right label{
+    display: block;
+    width: 18px;
+    height: 18px;
+    position: absolute;
+    left: 10px;
+    top: 10px;
+    background-image: url("../img/searce_icon_grey.png");
+}
+.content-up-left-select{
+    height: 38px;
+    margin-right: 50px;
+    margin-bottom: 20px;
+}
+.content-up-left-item select{
+    width: 130px;
+    height: 38px;
+    border-radius: 3px;
+    padding-left: 10px;
+}
+.bottom-top select{
+    margin-right: 20px;
+}
+.content-up-left-item span{
+    line-height: 38px;
+    margin-left: 5px;
+    margin-right: 5px;
+}
+.content-up-left-data{
+    margin-right: 20px;
+    height: 38px;
+    display: flex;
+    flex-direction: row;
+}
+.content-up-left-data-time{
+    position: relative;
+}
+.start_time-right{
+    display: block;
+    width: 37px;
+    height: 37px;
+    position: absolute;
+    right: 1px;
+    top: 1px;
+    background-image: url("../img/calendar_off.png");
+}
+.start_time-right:hover{
+    background-image: url("../img/calendar_on.png");
+}
+.content-up-left-data input{
+    height: 39px;
+    width: 170px;
+    line-height: 38px;
+    border-radius: 3px;
+    border: 1px solid #6c757d;
+    padding-left: 10px;
+}
+.content-search{
+    width: 80px;
+    height: 38px;
+    background: #1890ff;
+    border-radius: 5px;
+    color: #fff;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+#strategy,#archives{
+    width: 150px;
+}
+.content-search-img{
+    margin-left: 10px;
+    margin-right: 10px;
+    align-self: center;
+    background-size: cover;
+    background-repeat: no-repeat;
+    width: 18px;
+    height: 18px;
+    background-repeat: no-repeat;
+    background-size: 100% 100%;
+    background-image: url("../img/searce_icon.png");
+}
+
+.content-down{
+    display: flex;
+    flex-direction: column;
+    margin-right: 20px;
+    padding: 20px 20px 20px 0;
+}
+.content-down-export{
+    width: 80px;
+    height: 38px;
+    background: #1890ff;
+    border-radius: 5px;
+    color: #fff;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    margin-left: 20px;
+}
+.content-down-export-img{
+    margin-left: 10px;
+    margin-right: 10px;
+    align-self: center;
+    background-size: cover;
+    background-repeat: no-repeat;
+    width: 18px;
+    height: 18px;
+    background-repeat: no-repeat;
+    background-size: 100% 100%;
+    background-image: url("../img/export_icon.png");
+}
+.content-down-list{
+    margin-top: 20px;
+    margin-bottom: 20px;
+    padding-bottom: 20px;
+    right: 20px;
+    margin-left: 20px;
+}
+.content-down-list table{
+    width: 100%;
+    height: 100%;
+}
+table thead th {
+    height: 54px;
+    background: #fafafa;
+    padding: 10px;
+    text-align: center;
+    border-bottom: 1px solid #e1e1e1;
+    color: #707070;
+}
+
+table tbody td {
+    text-align: center;
+    height: 54px;
+    border-bottom: 1px solid #f2f2f2;
+    color: #595959;
+}
+table tbody td span {
+    cursor: pointer;
+}
+.item-sequence{
+    display: flex;
+    width: 18px;
+    height: 18px;
+    flex-direction: column;
+}
+.content-item-sequence{
+    display: inline-flex;
+    align-content: center;
+    align-items: center;
+    text-align: center;
+}
+.item-sequence span{
+    width: 18px;
+    height: 9px;
+    background-size: 18px 9px;
+    background-repeat: no-repeat;
+}
+.item-sequence-up_on{
+    background-image: url("../img/sequence_up_on.png");
+}
+.item-sequence-up_off{
+    background-image: url("../img/sequence_up_off.png");
+}
+.item-sequence-down_on{
+    background-image: url("../img/sequence_down_on.png");
+}
+.item-sequence-down_off{
+    background-image: url("../img/sequence_down_off.png");
+}
+.content-down-broken_line{
+    width: 100%;
+    min-height: 650px;
+    background: #fff;
+    margin-bottom: 20px;
+    box-shadow:#cacbcf 0 0 50px ;
+    border-radius: 5px;
+}
+.content-down-broken_line-top{
+    margin-left: 10px;
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+.content-down-broken_line-top span:first-child{
+    color: #556070;
+    font-size: 16px;
+}
+.content-down-broken_line-top span:last-child{
+    color: #a8abb2;
+    font-size: 15px;
+}
+.content-down-broken_line-content-top {
+    width: 100%;
+    position: relative;
+}
+.TabNav{
+    position: relative;
+    margin-top: 50px;
+    margin-left: 20px;
+    margin-right: 20px;
+}
+.TabNav-right-top{
+    position: absolute;
+    right: 20px;
+    display: flex;
+    flex-direction: row;
+}
+.TabNav-right-top li{
+    list-style: none;
+    font-size: 14px;
+    display: flex;
+    margin-left: 20px;
+}
+.icon-chart-data{
+    display: block;
+    margin: 4px;
+    width: 8px;
+    height: 8px;
+    background-size: cover;
+    background-repeat: no-repeat;
+    border-radius: 50%;
+}
+.TabNav-right-top li:first-child span{
+    background: #53a8e2;
+    border: 1px solid #53a8e2;
+}
+.TabNav-right-top span{
+    background: #68dbfc;
+    border: 1px solid #68dbfc;
+}
+.TabNav-right-top li:last-child span{
+    background: #fff;
+    border: 1px solid #53a8e2;
+}
+.TabNav ul{
+    padding-left:0px;
+}
+.TabNav ul li{
+    float: left;
+    border: 1px solid #1890ff;
+    width: 80px;
+    text-align: center;
+    position: relative;
+    list-style: none;
+    height: 38px;
+    line-height: 38px;
+}
+.TabNav ul li:first-child{
+    border-bottom-left-radius: 5px;
+    border-top-left-radius: 5px;
+}
+.TabCon{
+    position: absolute;
+    top: 65px;
+    width: 100%;
+}
+.TabNav ul li.active{
+    background: #1890ff;
+    color: #fff;
+}

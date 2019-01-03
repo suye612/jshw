@@ -1,0 +1,990 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.jhsw.statistics.dao.statistics.SttisticsMapper">
+
+	<select id="selectRPS"
+		resultType="com.jhsw.statistics.entities.rps.RPSttistics"
+		parameterType="com.jhsw.statistics.entities.rps.RPSttisticsQuery">
+		select 
+			m.regioncode areaCode,
+			m.regionname areaName,
+			m.regionlevel areaLevel,
+			sum(prpl.worklogMarkCnt) planLog,
+			sum(IFNULL(dl.dlcnt,'0')) doneLog,
+			sum(IFNULL(pe.pecnt,'0')) planEvent,
+			sum(IFNULL(de.decnt,'0')) doneEvent,
+			sum(prpl.patrolMarkCnt) planCheckRiver,
+			sum(IFNULL(dr.drcnt,'0')) doneCheckRiver
+		from (
+			select
+				mdar.code regioncode,
+				mdar.name regionname,
+				mdar.regionlevel,
+				mdar.parents,
+				mdar.sortorder,
+				mdr.id reachid,
+				mdr.name reachname,
+				mdrc.chairmanid
+			from
+				MD_ADMINREGION mdar
+			left join
+				MD_REACH mdr on mdr.adminregionid = mdar.code and mdr.reachlevel = mdar.regionlevel and mdr.status = 1
+			left join
+				MD_REACHCHAIRMAN mdrc on mdrc.reachid = mdr.id and mdrc.chairmanlevel = mdr.reachlevel and mdrc.status = 1
+			left join
+				SM_USER su on su.id = mdrc.chairmanid and su.status = 1
+			left join
+				SM_ROLE sr on sr.id = '262' and sr.status = 1
+			left join
+				SM_USERROLE sur on sur.userid = su.id and sur.roleid = sr.id
+			where
+				INSTR(mdar.parents, #{code})<![CDATA[ > 0]]>
+			and mdar.regionlevel = #{regionLevel}
+		) m
+		left join (
+			select
+				eventoccurareaid areaid,
+				COUNT(1) decnt
+			from
+				EH_EVENT
+			where
+				INSTR(status,'X')<![CDATA[ < 1]]>
+			and INSTR(status,'T')<![CDATA[ < 1]]>
+			and INSTR(status,'Z')<![CDATA[ > 0]]>
+			and createtime BETWEEN #{startDate} and #{endDate}
+			group by
+				eventoccurareaid
+		) de on de.areaid = m.regioncode
+		left join (
+			select
+				eventoccurareaid areaid,
+				COUNT(1) pecnt
+			from
+				EH_EVENT
+			where
+				INSTR(status,'X')<![CDATA[ < 1]]>
+			and INSTR(status,'T')<![CDATA[ < 1]]>
+			and createtime BETWEEN #{startDate} and #{endDate}
+			group by
+				eventoccurareaid
+		) pe on pe.areaid = m.regioncode
+		left join (
+			select
+				region,
+				COUNT(1) drcnt
+			from
+				MD_PATROLRECORD
+			where
+				createdate BETWEEN #{startDate} and #{endDate}
+			group by
+				region
+		) dr on dr.region = m.regioncode
+		left join (
+			SELECT
+				chairmanid,
+				COUNT( chairmanid ) dlcnt 
+			FROM
+				( SELECT chairmanid, logdate FROM LOG_WORKLOG FORCE INDEX ( I_LOG_WORKLOG_LOGDATE ) LIMIT 0,10000000 ) l
+			WHERE
+				logdate BETWEEN #{startDate} and #{endDate}
+			GROUP BY
+				chairmanid
+		) dl on dl.chairmanid = m.chairmanid
+		left join (
+			select
+				rolelevel, 
+				IF(patrolmarkmonth IS NULL, IF(patrolmarkweek IS NULL, IF(patrolmarkday IS NULL, 0, patrolmarkday), patrolmarkweek), patrolmarkmonth) * IF(patrolmarkmonth IS NULL, IF(patrolmarkweek IS NULL, IF(patrolmarkday IS NULL, 0, #{days}), #{weeks}), #{months}) patrolmarkcnt,
+				IF(worklogmarkmonth IS NULL, IF(worklogmarkweek IS NULL, IF(worklogmarkday IS NULL, 0, worklogmarkday), worklogMarkWeek), worklogmarkmonth) * IF(worklogmarkmonth IS NULL, IF(worklogmarkweek IS NULL, IF(worklogmarkday IS NULL, 0, #{days}), #{weeks}), #{months}) worklogmarkcnt
+			from
+				AM_CHECK_STANDARD 
+			where
+				roleid = '262'
+		) prpl on prpl.rolelevel = m.regionlevel
+		group by
+			m.regioncode,
+			m.regionname,
+			m.regionlevel
+		order by
+			m.sortorder
+	</select>
+
+	<select id="selectCPS"
+		resultType="com.jhsw.statistics.entities.cps.CPSttistics"
+		parameterType="com.jhsw.statistics.entities.cps.CPSttisticsQuery">
+		select 
+			m.reachid reachCode,
+			m.reachname reachName,
+			m.reachlevel reachLevel,
+			m.chairmanid chairmanCode,
+			m.chairmanname chairmanName,
+			m.chairmanlevel chairmanLevel,
+			sum(prpl.worklogMarkCnt) planLog,
+			sum(IFNULL(dl.dlcnt,'0')) doneLog,
+			sum(IFNULL(pe.pecnt,'0')) planEvent,
+			sum(IFNULL(de.decnt,'0')) doneEvent,
+			sum(prpl.patrolMarkCnt) planCheckRiver,
+			sum(IFNULL(dr.drcnt,'0')) doneCheckRiver
+		from (
+			select
+				mdar.sortorder,
+				mdr.id reachid,
+				mdr.name reachname,
+				mdr.reachlevel,
+				mdrc.chairmanid,
+				su.name chairmanname,
+				mdrc.chairmanlevel
+			from
+				MD_ADMINREGION mdar
+			left join
+				MD_REACH mdr on mdr.adminregionid = mdar.code and mdr.reachlevel = mdar.regionlevel and mdr.status = 1
+			left join
+				MD_REACHCHAIRMAN mdrc on mdrc.reachid = mdr.id and mdrc.chairmanlevel = mdr.reachlevel and mdrc.status = 1
+			<if test="chairmanLevel > 0">
+			and mdrc.chairmanlevel = #{chairmanLevel}
+			</if>
+			left join
+				SM_USER su on su.id = mdrc.chairmanid and su.status = 1
+			<if test="chairmanName != null and chairmanName != ''">
+			and su.name like CONCAT('%', #{chairmanName}, '%')
+			</if>
+			left join
+				SM_ROLE sr on sr.id = '262' and sr.status = 1
+			left join
+				SM_USERROLE sur on sur.userid = su.id and sur.roleid = sr.id
+			where
+				INSTR(mdar.parents, #{code})<![CDATA[ > 0]]>
+			and mdar.regionlevel = #{regionLevel}
+			and su.id is not null
+		) m
+		left join (
+			select
+				eventreachid,
+				COUNT(1) decnt
+			from
+				EH_EVENT
+			where
+				INSTR(status,'X')<![CDATA[ < 1]]>
+			and INSTR(status,'T')<![CDATA[ < 1]]>
+			and INSTR(status,'Z')<![CDATA[ > 0]]>
+			and createtime BETWEEN #{startDate} and #{endDate}
+			group by
+				eventreachid
+		) de on de.eventreachid = m.reachid
+		left join (
+			select
+				eventreachid,
+				COUNT(1) pecnt
+			from
+				EH_EVENT
+			where
+				INSTR(status,'X')<![CDATA[ < 1]]>
+			and INSTR(status,'T')<![CDATA[ < 1]]>
+			and createtime BETWEEN #{startDate} and #{endDate}
+			group by
+				eventreachid
+		) pe on pe.eventreachid = m.reachid
+		left join (
+			select
+				reach,
+				COUNT(1) drcnt
+			from
+				MD_PATROLRECORD
+			where
+				createdate BETWEEN #{startDate} and #{endDate}
+			group by
+				reach
+		) dr on dr.reach = m.reachid
+		left join (
+			SELECT
+				chairmanid,
+				COUNT( chairmanid ) dlcnt 
+			FROM
+				( SELECT chairmanid, logdate FROM LOG_WORKLOG FORCE INDEX ( I_LOG_WORKLOG_LOGDATE ) LIMIT 0,10000000 ) l
+			WHERE
+				logdate BETWEEN #{startDate} and #{endDate}
+			GROUP BY
+				chairmanid
+		) dl on dl.chairmanid = m.chairmanid
+		left join (
+			select
+				rolelevel, 
+				IF(patrolmarkmonth IS NULL, IF(patrolmarkweek IS NULL, IF(patrolmarkday IS NULL, 0, patrolmarkday), patrolmarkweek), patrolmarkmonth) * IF(patrolmarkmonth IS NULL, IF(patrolmarkweek IS NULL, IF(patrolmarkday IS NULL, 0, #{days}), #{weeks}), #{months}) patrolmarkcnt,
+				IF(worklogmarkmonth IS NULL, IF(worklogmarkweek IS NULL, IF(worklogmarkday IS NULL, 0, worklogmarkday), worklogMarkWeek), worklogmarkmonth) * IF(worklogmarkmonth IS NULL, IF(worklogmarkweek IS NULL, IF(worklogmarkday IS NULL, 0, #{days}), #{weeks}), #{months}) worklogmarkcnt
+			from
+				AM_CHECK_STANDARD 
+			where
+				roleid = '262'
+		) prpl on prpl.rolelevel = m.chairmanlevel
+		group by
+			m.reachid,
+			m.chairmanid,
+			m.chairmanlevel
+		order by
+			m.sortorder,
+			m.chairmanid
+	</select>
+
+	<select id="selectRBISList"
+		resultType="com.jhsw.statistics.entities.rbis.RBISttistics"
+		parameterType="com.jhsw.statistics.entities.rbis.RBISttisticsQuery">
+		select 
+			m.regioncode areaCode,
+			m.regionname areaName,
+			m.regionlevel areaLevel,
+			sum(IFNULL(rc.cnt,'0')) reachCnt,
+			sum(IFNULL(p2.cnt,'0')) lv2ChairmanCnt,
+			sum(IFNULL(p3.cnt,'0')) lv3ChairmanCnt,
+			sum(IFNULL(p4.cnt,'0')) lv4ChairmanCnt,
+			sum(IFNULL(p5.cnt,'0')) lv5ChairmanCnt,
+			sum(IFNULL(staff.cnt,'0')) staffCnt,
+			sum(IFNULL(cleaner.cnt,'0')) cleanerCnt,
+			sum(IFNULL(reachdoc.cnt,'0')) reachDocCnt,
+			sum(IFNULL(policydoc.cnt,'0')) policyDocCnt,
+			sum(IFNULL(publicity.cnt,'0')) publicityCnt,
+			sum(IFNULL(pollution.cnt,'0')) pollutionCnt,
+			sum(IFNULL(treatment.cnt,'0')) treatmentCnt,
+			sum(IFNULL(camera.cnt,'0')) cameraCnt,
+			sum(IFNULL(section.cnt,'0')) sectionCnt
+		from (
+			select
+				mdar.code regioncode,
+				mdar.name regionname,
+				mdar.regionlevel,
+				mdar.sortorder
+			from
+				MD_ADMINREGION mdar
+			where
+				INSTR(mdar.parents, #{code})<![CDATA[ > 0]]>
+			and mdar.regionlevel = #{regionLevel}
+		) m
+		/* 标绘河道 */
+		left join (
+			select
+				mdr.adminregionid, mdr.reachlevel, COUNT(1) cnt 
+			from
+				MD_REACH mdr
+			inner join
+				MD_ADMINREGION mda
+			where
+				mdr.adminregionid = mda.code
+			and mdr.reachlevel = mda.regionlevel
+			and mdr.status = 1 
+			and INSTR(mda.parents, #{code})<![CDATA[ > 0]]>
+			and mda.regionlevel = #{regionLevel}
+			group by mdr.adminregionid, mdr.reachlevel
+		) rc on rc.adminregionid = m.regioncode and rc.reachlevel = m.regionlevel
+		/* 市/县/镇/村级河长 需要根据检索条件来判断使用哪段SQL*/
+		left join (
+			select
+				mdr.provinceid, mdr.cityid
+				, COUNT(1) cnt
+			from MD_REACH mdr
+			inner join MD_REACHCHAIRMAN mdrc on mdrc.reachid = mdr.id and mdrc.chairmanlevel = mdr.reachlevel and mdrc.status = 1
+			where mdr.reachlevel = 2
+			<if test="regionLevel == 2">
+			and mdr.provinceid = #{code}
+			</if>
+			<if test="regionLevel > 2">
+			and 1=2
+			</if>
+			group by
+				mdr.provinceid, mdr.cityid
+		) p2 on p2.cityid = m.regioncode
+		left join (
+			select
+			<if test="regionLevel == 2">
+				mdr.provinceid, mdr.cityid
+			</if>
+			<if test="regionLevel >= 3">
+				mdr.provinceid, mdr.cityid, mdr.countyid
+			</if>
+				, COUNT(1) cnt
+			from MD_REACH mdr
+			inner join MD_REACHCHAIRMAN mdrc on mdrc.reachid = mdr.id and mdrc.chairmanlevel = mdr.reachlevel and mdrc.status = 1
+			where mdr.reachlevel = 3
+			<if test="regionLevel == 2">
+			and mdr.provinceid = #{code}
+			</if>
+			<if test="regionLevel == 3">
+			and mdr.cityid = #{code}
+			</if>
+			<if test="regionLevel > 3">
+			and 1=2
+			</if>
+			group by
+			<if test="regionLevel == 2">
+				mdr.provinceid, mdr.cityid
+			</if>
+			<if test="regionLevel >= 3">
+				mdr.provinceid, mdr.cityid, mdr.countyid
+			</if>
+		) p3 on 
+		<if test="regionLevel == 2">
+		p3.cityid = m.regioncode
+		</if>
+		<if test="regionLevel >= 3">
+		p3.countyid = m.regioncode
+		</if>
+		left join (
+			select
+			<if test="regionLevel == 2">
+				mdr.provinceid, mdr.cityid
+			</if>
+			<if test="regionLevel == 3">
+				mdr.provinceid, mdr.cityid, mdr.countyid
+			</if>
+			<if test="regionLevel >= 4">
+				mdr.provinceid, mdr.cityid, mdr.countyid, mdr.townid
+			</if>
+				, COUNT(1) cnt
+			from MD_REACH mdr
+			inner join MD_REACHCHAIRMAN mdrc on mdrc.reachid = mdr.id and mdrc.chairmanlevel = mdr.reachlevel and mdrc.status = 1
+			where mdr.reachlevel = 4
+			<if test="regionLevel == 2">
+			and mdr.provinceid = #{code}
+			</if>
+			<if test="regionLevel == 3">
+			and mdr.cityid = #{code}
+			</if>
+			<if test="regionLevel == 4">
+			and mdr.countyid = #{code}
+			</if>
+			<if test="regionLevel > 4">
+			and 1=2
+			</if>
+			group by
+			<if test="regionLevel == 2">
+				mdr.provinceid, mdr.cityid
+			</if>
+			<if test="regionLevel == 3">
+				mdr.provinceid, mdr.cityid, mdr.countyid
+			</if>
+			<if test="regionLevel >= 4">
+				mdr.provinceid, mdr.cityid, mdr.countyid, mdr.townid
+			</if>
+		) p4 on 
+		<if test="regionLevel == 2">
+		p4.cityid = m.regioncode
+		</if>
+		<if test="regionLevel == 3">
+		p4.countyid = m.regioncode
+		</if>
+		<if test="regionLevel >= 4">
+		p4.townid = m.regioncode
+		</if>
+		left join (
+			select
+			<if test="regionLevel == 2">
+				mdr.provinceid, mdr.cityid
+			</if>
+			<if test="regionLevel == 3">
+				mdr.provinceid, mdr.cityid, mdr.countyid
+			</if>
+			<if test="regionLevel == 4">
+				mdr.provinceid, mdr.cityid, mdr.countyid, mdr.townid
+			</if>
+			<if test="regionLevel == 5">
+				mdr.provinceid, mdr.cityid, mdr.countyid, mdr.townid, mdr.villageid
+			</if>
+				, COUNT(1) cnt
+			from MD_REACH mdr
+			inner join MD_REACHCHAIRMAN mdrc on mdrc.reachid = mdr.id and mdrc.chairmanlevel = mdr.reachlevel and mdrc.status = 1
+			where mdr.reachlevel = 5
+			<if test="regionLevel == 2">
+			and mdr.provinceid = #{code}
+			</if>
+			<if test="regionLevel == 3">
+			and mdr.cityid = #{code}
+			</if>
+			<if test="regionLevel == 4">
+			and mdr.countyid = #{code}
+			</if>
+			<if test="regionLevel == 5">
+			and mdr.townid = #{code}
+			</if>
+			group by
+			<if test="regionLevel == 2">
+				mdr.provinceid, mdr.cityid
+			</if>
+			<if test="regionLevel == 3">
+				mdr.provinceid, mdr.cityid, mdr.countyid
+			</if>
+			<if test="regionLevel == 4">
+				mdr.provinceid, mdr.cityid, mdr.countyid, mdr.townid
+			</if>
+			<if test="regionLevel == 5">
+				mdr.provinceid, mdr.cityid, mdr.countyid, mdr.townid, mdr.villageid
+			</if>
+		) p5 on 
+		<if test="regionLevel == 2">
+		p5.cityid = m.regioncode
+		</if>
+		<if test="regionLevel == 3">
+		p5.countyid = m.regioncode
+		</if>
+		<if test="regionLevel == 4">
+		p5.townid = m.regioncode
+		</if>
+		<if test="regionLevel == 5">
+		p5.villageid = m.regioncode
+		</if>
+		/* 工作人员 */
+		left join (
+			select
+			<if test="regionLevel == 2">
+				su.provinceid, su.cityid
+			</if>
+			<if test="regionLevel == 3">
+				su.provinceid, su.cityid, su.countyid
+			</if>
+			<if test="regionLevel == 4">
+				su.provinceid, su.cityid, su.countyid, su.townid
+			</if>
+			<if test="regionLevel == 5">
+				su.provinceid, su.cityid, su.countyid, su.townid, su.villageid
+			</if>
+				, COUNT(1) cnt
+			from
+				SM_USER su
+			inner join
+				SM_ROLE sr on sr.id = '264' and sr.status = 1
+			inner join
+				SM_USERROLE sur on sur.userid = su.id and sur.roleid = sr.id
+			<if test="regionLevel == 2">
+			where su.provinceid = #{code}
+			</if>
+			<if test="regionLevel == 3">
+			where su.cityid = #{code}
+			</if>
+			<if test="regionLevel == 4">
+			where su.countyid = #{code}
+			</if>
+			<if test="regionLevel == 5">
+			where su.townid = #{code}
+			</if>
+			group by
+			<if test="regionLevel == 2">
+				su.provinceid, su.cityid
+			</if>
+			<if test="regionLevel == 3">
+				su.provinceid, su.cityid, su.countyid
+			</if>
+			<if test="regionLevel == 4">
+				su.provinceid, su.cityid, su.countyid, su.townid
+			</if>
+			<if test="regionLevel == 5">
+				su.provinceid, su.cityid, su.countyid, su.townid, su.villageid
+			</if>
+		) staff on 
+		<if test="regionLevel == 2">
+		staff.cityid = m.regioncode
+		</if>
+		<if test="regionLevel == 3">
+		staff.countyid = m.regioncode
+		</if>
+		<if test="regionLevel == 4">
+		staff.townid = m.regioncode
+		</if>
+		<if test="regionLevel == 5">
+		staff.villageid = m.regioncode
+		</if>
+		/* 保洁员 */
+		left join (
+			select
+			<if test="regionLevel == 2">
+				su.provinceid, su.cityid
+			</if>
+			<if test="regionLevel == 3">
+				su.provinceid, su.cityid, su.countyid
+			</if>
+			<if test="regionLevel == 4">
+				su.provinceid, su.cityid, su.countyid, su.townid
+			</if>
+			<if test="regionLevel == 5">
+				su.provinceid, su.cityid, su.countyid, su.townid, su.villageid
+			</if>
+				, COUNT(1) cnt
+			from
+				SM_USER su
+			inner join
+				SM_ROLE sr on sr.id = '6' and sr.status = 1
+			inner join
+				SM_USERROLE sur on sur.userid = su.id and sur.roleid = sr.id
+			<if test="regionLevel == 2">
+			where su.provinceid = #{code}
+			</if>
+			<if test="regionLevel == 3">
+			where su.cityid = #{code}
+			</if>
+			<if test="regionLevel == 4">
+			where su.countyid = #{code}
+			</if>
+			<if test="regionLevel == 5">
+			where su.townid = #{code}
+			</if>
+			group by
+			<if test="regionLevel == 2">
+				su.provinceid, su.cityid
+			</if>
+			<if test="regionLevel == 3">
+				su.provinceid, su.cityid, su.countyid
+			</if>
+			<if test="regionLevel == 4">
+				su.provinceid, su.cityid, su.countyid, su.townid
+			</if>
+			<if test="regionLevel == 5">
+				su.provinceid, su.cityid, su.countyid, su.townid, su.villageid
+			</if>
+		) cleaner on 
+		<if test="regionLevel == 2">
+		cleaner.cityid = m.regioncode
+		</if>
+		<if test="regionLevel == 3">
+		cleaner.countyid = m.regioncode
+		</if>
+		<if test="regionLevel == 4">
+		cleaner.townid = m.regioncode
+		</if>
+		<if test="regionLevel == 5">
+		cleaner.villageid = m.regioncode
+		</if>
+		/* 一河一档 */
+		left join (
+			select
+				mdr.adminregionid, COUNT(1) cnt
+			from
+				MD_DOC mdd
+			inner join
+				MD_DOCTYPE mddt on mddt.id = 169 and mddt.id = mdd.typeid
+			inner join
+				MD_REACH mdr on mdr.id = mdd.reachid
+			group by mdr.adminregionid
+		) reachdoc on reachdoc.adminregionid = m.regioncode
+		/* 一河一策*/
+		left join (
+			select
+				mdr.adminregionid, COUNT(1) cnt
+			from
+				MD_DOC mdd
+			inner join
+				MD_DOCTYPE mddt on mddt.id = 168 and mddt.id = mdd.typeid
+			inner join
+				MD_REACH mdr on mdr.id = mdd.reachid
+			group by mdr.adminregionid
+		) policydoc on policydoc.adminregionid = m.regioncode
+		/* 公示牌*/
+		left join (
+			select
+				mdr.adminregionid, COUNT(1) cnt
+			from
+				MD_PUBLICITYCARD mdpc
+			inner join
+				MD_REACH mdr on mdr.id = mdpc.reachid
+			group by mdr.adminregionid
+		) publicity on publicity.adminregionid = m.regioncode
+		/* 污染源*/
+		left join (
+			select
+			<if test="regionLevel == 2">
+				mdc.provinceid,mdc.cityid
+			</if>
+			<if test="regionLevel == 3">
+				mdc.provinceid,mdc.cityid, mdc.countyid
+			</if>
+			<if test="regionLevel == 4">
+				mdc.provinceid,mdc.cityid, mdc.countyid, mdc.townid
+			</if>
+			<if test="regionLevel == 5">
+				mdc.provinceid,mdc.cityid, mdc.countyid, mdc.townid, mdc.villageid
+			</if>
+				, COUNT(1) cnt
+			from
+				MD_COMPONENT mdc
+			inner join
+				MD_COMPONENTTYPE mdct on mdct.id = '10000000000000000000000000000000' and mdct.id = mdc.mainclassid
+			where
+				status = 1
+			<if test="regionLevel == 2">
+			and mdc.provinceid = #{code}
+			</if>
+			<if test="regionLevel == 3">
+			and mdc.cityid = #{code}
+			</if>
+			<if test="regionLevel == 4">
+			and mdc.countyid = #{code}
+			</if>
+			<if test="regionLevel == 5">
+			and mdc.townid = #{code}
+			</if>
+			group by
+			<if test="regionLevel == 2">
+				mdc.provinceid,mdc.cityid
+			</if>
+			<if test="regionLevel == 3">
+				mdc.provinceid,mdc.cityid, mdc.countyid
+			</if>
+			<if test="regionLevel == 4">
+				mdc.provinceid,mdc.cityid, mdc.countyid, mdc.townid
+			</if>
+			<if test="regionLevel == 5">
+				mdc.provinceid,mdc.cityid, mdc.countyid, mdc.townid, mdc.villageid
+			</if>
+		) pollution on 
+		<if test="regionLevel == 2">
+		pollution.cityid = m.regioncode
+		</if>
+		<if test="regionLevel == 3">
+		pollution.countyid = m.regioncode
+		</if>
+		<if test="regionLevel == 4">
+		pollution.townid = m.regioncode
+		</if>
+		<if test="regionLevel == 5">
+		pollution.villageid = m.regioncode
+		</if>
+		/* 污水处理厂*/
+		left join (
+			select
+			<if test="regionLevel == 2">
+				mdc.provinceid,mdc.cityid
+			</if>
+			<if test="regionLevel == 3">
+				mdc.provinceid,mdc.cityid, mdc.countyid
+			</if>
+			<if test="regionLevel == 4">
+				mdc.provinceid,mdc.cityid, mdc.countyid, mdc.townid
+			</if>
+			<if test="regionLevel == 5">
+				mdc.provinceid,mdc.cityid, mdc.countyid, mdc.townid, mdc.villageid
+			</if>
+				, COUNT(1) cnt
+			from
+				MD_COMPONENT mdc
+			inner join
+				MD_COMPONENTTYPE mdct on mdct.id = '80010000000000000000000000000000' and mdct.id = mdc.subclassid and INSTR(mdct.parents, mdc.mainclassid)<![CDATA[ > 0]]>
+			where
+				status = 1
+			<if test="regionLevel == 2">
+			and mdc.provinceid = #{code}
+			</if>
+			<if test="regionLevel == 3">
+			and mdc.cityid = #{code}
+			</if>
+			<if test="regionLevel == 4">
+			and mdc.countyid = #{code}
+			</if>
+			<if test="regionLevel == 5">
+			and mdc.townid = #{code}
+			</if>
+			group by
+			<if test="regionLevel == 2">
+				mdc.provinceid,mdc.cityid
+			</if>
+			<if test="regionLevel == 3">
+				mdc.provinceid,mdc.cityid, mdc.countyid
+			</if>
+			<if test="regionLevel == 4">
+				mdc.provinceid,mdc.cityid, mdc.countyid, mdc.townid
+			</if>
+			<if test="regionLevel == 5">
+				mdc.provinceid,mdc.cityid, mdc.countyid, mdc.townid, mdc.villageid
+			</if>
+		) treatment on 
+		<if test="regionLevel == 2">
+		treatment.cityid = m.regioncode
+		</if>
+		<if test="regionLevel == 3">
+		treatment.countyid = m.regioncode
+		</if>
+		<if test="regionLevel == 4">
+		treatment.townid = m.regioncode
+		</if>
+		<if test="regionLevel == 5">
+		treatment.villageid = m.regioncode
+		</if>
+		/* 监控摄像头*/
+		left join (
+			select
+			<if test="regionLevel == 2">
+				mdc.provinceid,mdc.cityid
+			</if>
+			<if test="regionLevel == 3">
+				mdc.provinceid,mdc.cityid, mdc.countyid
+			</if>
+			<if test="regionLevel == 4">
+				mdc.provinceid,mdc.cityid, mdc.countyid, mdc.townid
+			</if>
+			<if test="regionLevel == 5">
+				mdc.provinceid,mdc.cityid, mdc.countyid, mdc.townid, mdc.villageid
+			</if>
+				, COUNT(1) cnt
+			from
+				MD_COMPONENT mdc
+			inner join
+				MD_COMPONENTTYPE mdct on mdct.id = '30030000000000000000000000000000' and mdct.id = mdc.subclassid and INSTR(mdct.parents, mdc.mainclassid)<![CDATA[ > 0]]>
+			where
+				status = 1
+			<if test="regionLevel == 2">
+			and mdc.provinceid = #{code}
+			</if>
+			<if test="regionLevel == 3">
+			and mdc.cityid = #{code}
+			</if>
+			<if test="regionLevel == 4">
+			and mdc.countyid = #{code}
+			</if>
+			<if test="regionLevel == 5">
+			and mdc.townid = #{code}
+			</if>
+			group by
+			<if test="regionLevel == 2">
+				mdc.provinceid,mdc.cityid
+			</if>
+			<if test="regionLevel == 3">
+				mdc.provinceid,mdc.cityid, mdc.countyid
+			</if>
+			<if test="regionLevel == 4">
+				mdc.provinceid,mdc.cityid, mdc.countyid, mdc.townid
+			</if>
+			<if test="regionLevel == 5">
+				mdc.provinceid,mdc.cityid, mdc.countyid, mdc.townid, mdc.villageid
+			</if>
+		) camera on 
+		<if test="regionLevel == 2">
+		camera.cityid = m.regioncode
+		</if>
+		<if test="regionLevel == 3">
+		camera.countyid = m.regioncode
+		</if>
+		<if test="regionLevel == 4">
+		camera.townid = m.regioncode
+		</if>
+		<if test="regionLevel == 5">
+		camera.villageid = m.regioncode
+		</if>
+		/* 监测断面*/
+		left join (
+			select
+			<if test="regionLevel == 2">
+				mdc.provinceid,mdc.cityid
+			</if>
+			<if test="regionLevel == 3">
+				mdc.provinceid,mdc.cityid, mdc.countyid
+			</if>
+			<if test="regionLevel == 4">
+				mdc.provinceid,mdc.cityid, mdc.countyid, mdc.townid
+			</if>
+			<if test="regionLevel == 5">
+				mdc.provinceid,mdc.cityid, mdc.countyid, mdc.townid, mdc.villageid
+			</if>
+				, COUNT(1) cnt
+			from
+				MD_COMPONENT mdc
+			inner join
+				MD_COMPONENTTYPE mdct on mdct.id = '30040000000000000000000000000000' and mdct.id = mdc.subclassid and INSTR(mdct.parents, mdc.mainclassid)<![CDATA[ > 0]]>
+			where
+				status = 1
+			<if test="regionLevel == 2">
+			and mdc.provinceid = #{code}
+			</if>
+			<if test="regionLevel == 3">
+			and mdc.cityid = #{code}
+			</if>
+			<if test="regionLevel == 4">
+			and mdc.countyid = #{code}
+			</if>
+			<if test="regionLevel == 5">
+			and mdc.townid = #{code}
+			</if>
+			group by
+			<if test="regionLevel == 2">
+				mdc.provinceid,mdc.cityid
+			</if>
+			<if test="regionLevel == 3">
+				mdc.provinceid,mdc.cityid, mdc.countyid
+			</if>
+			<if test="regionLevel == 4">
+				mdc.provinceid,mdc.cityid, mdc.countyid, mdc.townid
+			</if>
+			<if test="regionLevel == 5">
+				mdc.provinceid,mdc.cityid, mdc.countyid, mdc.townid, mdc.villageid
+			</if>
+		) section on 
+		<if test="regionLevel == 2">
+		section.cityid = m.regioncode
+		</if>
+		<if test="regionLevel == 3">
+		section.countyid = m.regioncode
+		</if>
+		<if test="regionLevel == 4">
+		section.townid = m.regioncode
+		</if>
+		<if test="regionLevel == 5">
+		section.villageid = m.regioncode
+		</if>
+		group by
+			m.regioncode,
+			m.regionname,
+			m.regionlevel
+		order by
+			m.sortorder
+	</select>
+
+	<select id="selectCBISList"
+		resultType="com.jhsw.statistics.entities.cbis.CBISttistics"
+		parameterType="com.jhsw.statistics.entities.cbis.CBISttisticsQuery">
+		select
+			m.regioncode,
+			m.regionname,
+			m.reachid reachCode,
+			m.reachname,
+			m.reachlevel,
+			m.chairmanid chairmanCode,
+			m.chairmanname,
+			m.chairmanlevel,
+			sum(IFNULL(outlet.cnt,'0')) outletCnt,
+			sum(IFNULL(album.cnt,'0')) albumCnt,
+			sum(IFNULL(publicity.cnt,'0')) publicityCnt,
+			sum(IFNULL(reachdoc.cnt,'0')) reachDocCnt,
+			sum(IFNULL(policydoc.cnt,'0')) policyDocCnt,
+			sum(IFNULL(farm.cnt,'0')) farmCnt,
+			sum(IFNULL(tf.cnt,'0')) tfCnt
+		from (
+			select
+				mdar.code regioncode,
+				mdar.name regionname,
+				mdar.regionlevel,
+				mdar.sortorder,
+				mdr.id reachid,
+				mdr.name reachname,
+				mdr.reachlevel,
+				mdrc.chairmanid,
+				su.name chairmanname,
+				mdrc.chairmanlevel
+			from
+				MD_ADMINREGION mdar
+			left join
+				MD_REACH mdr on mdr.adminregionid = mdar.code and mdr.reachlevel = mdar.regionlevel and mdr.status = 1
+			<if test="reachName != null and reachName != ''">
+			and mdr.name like CONCAT('%', #{reachName}, '%')
+			</if>
+			left join
+				MD_REACHCHAIRMAN mdrc on mdrc.reachid = mdr.id and mdrc.chairmanlevel = mdr.reachlevel and mdrc.status = 1
+			<if test="chairmanLevel > 0">
+			and mdrc.chairmanlevel = #{chairmanLevel}
+			</if>
+			left join
+				SM_USER su on su.id = mdrc.chairmanid and su.status = 1
+			left join
+				SM_ROLE sr on sr.id = '262' and sr.status = 1
+			left join
+				SM_USERROLE sur on sur.userid = su.id and sur.roleid = sr.id
+			where
+				INSTR(mdar.parents, #{code})<![CDATA[ > 0]]>
+			and mdar.regionlevel = #{regionLevel}
+			and mdr.id is not null
+		) m
+		/* 排污口 */
+		left join (
+			select
+				mdc.reachid, COUNT(1) cnt
+			from
+				MD_COMPONENT mdc
+			inner join
+				MD_COMPONENTTYPE mdct on mdct.id = '20000000000000000000000000000000' and mdct.id = mdc.mainclassid
+			where
+				status = 1
+			group by mdc.reachid
+		) outlet on outlet.reachid = m.reachid/* 需要根据检索条件的行政等级来添加on条件 */
+		/* 随手拍 */
+		left join (
+			select
+				region, reach, COUNT(1) cnt
+			from
+				APP_ALBUM
+			where
+				uploaddate BETWEEN #{startDate} and #{endDate}
+			group by region, reach
+		) album on album.reach = m.reachid
+		/* 公示牌 */
+		left join (
+		select
+			mdpc.reachid, COUNT(1) cnt
+		from
+			MD_PUBLICITYCARD mdpc
+		group by mdpc.reachid
+		) publicity on publicity.reachid = m.reachid
+		/* 一河一档 */
+		left join (
+			select
+				mdd.reachid, COUNT(1) cnt
+			from
+				MD_DOC mdd
+			inner join
+				MD_DOCTYPE mddt on mddt.id = 169 and mddt.id = mdd.typeid
+			where
+				mdd.year BETWEEN #{startYear} and #{endYear}
+			group by mdd.reachid
+		) reachdoc on reachdoc.reachid = m.reachid
+		/* 一河一策 */
+		left join (
+			select
+				mdd.reachid, COUNT(1) cnt
+			from
+				MD_DOC mdd
+			inner join
+				MD_DOCTYPE mddt on mddt.id = 168 and mddt.id = mdd.typeid
+			where
+				mdd.year BETWEEN #{startYear} and #{endYear}
+			group by mdd.reachid
+		) policydoc on policydoc.reachid = m.reachid
+		/* 档案策略 后台计算 */
+		/* 畜禽养殖场 */
+		left join (
+			select
+				mdc.reachid, COUNT(1) cnt
+			from
+				MD_COMPONENT mdc
+			inner join
+				MD_COMPONENTTYPE mdct on mdct.id = '10040000000000000000000000000000' and mdct.id = mdc.subclassid and INSTR(mdct.parents, mdc.mainclassid)<![CDATA[ > 0]]>
+			where
+				status = 1
+			group by mdc.reachid
+		) farm on farm.reachid = m.reachid
+		/* 处理设施 */
+		left join (
+			select
+				mdc.reachid, COUNT(1) cnt
+			from
+				MD_COMPONENT mdc
+			inner join
+				MD_COMPONENTTYPE mdct on mdct.id = '60010000000000000000000000000000' and mdct.id = mdc.subclassid and INSTR(mdct.parents, mdc.mainclassid)<![CDATA[ > 0]]>
+			where
+				status = 1
+			group by mdc.reachid
+		) tf on tf.reachid = m.reachid
+		<where>
+		<if test="hasReachDoc == 1">
+			reachdoc.cnt is not null
+		</if>
+		<if test="hasReachDoc == 2">
+		and reachdoc.cnt is null
+		</if>
+		<if test="hasPolicyDoc == 1">
+		and policydoc.cnt is not null
+		</if>
+		<if test="hasPolicyDoc == 2">
+		and policydoc.cnt is null
+		</if>
+		</where>
+		group by
+			m.reachid,
+			m.reachlevel,
+			m.chairmanid,
+			m.chairmanlevel
+		order by
+			m.sortorder,
+			m.chairmanid
+	</select>
+
+</mapper>

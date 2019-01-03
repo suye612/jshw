@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en"  ng-app="myApp">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <title>区域履职统计</title>
+
+    <link rel="stylesheet" href="../css/bootstrap.min.css">
+    <link rel="stylesheet" href="../css/nav.css">
+    <link rel="stylesheet" href="../css/rmps.css">
+    <link rel="stylesheet" href="../js/datetimepicker/jquery.datetimepicker.css">
+    <style>
+        .page-list .pagination {float:left;margin-left: 20px;}
+        .page-list .pagination span {cursor: pointer;margin-right: 10px;border-radius: 5px;color: #1890ff}
+        .page-list .pagination .separate span{cursor: default; border:none;}
+        .page-list .pagination .separate span:hover {background: none;}
+        .page-list .page-total {float:left; margin:20px;}
+        .page-list .page-total input, .page-list .page-total select{height: 34px; border: 1px solid #ddd;border-radius:5px}
+        .page-list .page-total input {width: 40px; padding-left:3px;}
+        .page-list .page-total select {width: 50px;}
+        .pagination>.active>span{background: #1890ff;color: #fff}
+    </style>
+
+    <script type="text/javascript" src="../js/header.js"></script>
+    <script type="text/javascript" src="../js/angular.min.js"></script>
+    <script type="text/javascript" src="../js/jquery-3.2.1.min.js"></script>
+    <script type="text/javascript" src="../js/highcharts.js"></script>
+    <script type="text/javascript" src="../js/distpicker/distpicker.data.js"></script>
+    <script type="text/javascript" src="../js/distpicker/distpicker.js"></script>
+    <script type="text/javascript" src="../js/datetimepicker/jquery.datetimepicker.js"></script>
+    <script type="text/javascript" src="../js/tm.pagination.js"></script>
+</head>
+<body ng-controller="testController">
+<div class="wrapper" id="rbis">
+    <div class="nav color-off" style="display: none">
+        <div class="nav-header" >
+            <span class="">金华市河（湖）长制</span>
+            <span class="">管理信息系统</span>
+        </div>
+        <div class="nav-content">
+            <li class="nav-content-li color-off">
+                <a href="rps.html" class="nav-a">
+                    <span class="nav-laber nav-off">区域履职统计</span>
+                </a>
+            </li>
+            <li class="nav-content-li color-off">
+                <a href="rmps.html" class="nav-a">
+                    <span class="nav-laber nav-off">河长履职统计</span>
+                </a>
+            </li>
+            <li class="nav-content-li color-on">
+                <a href="rbis.html" class="nav-a">
+                    <span class="nav-laber nav-on">区域基础信息统计</span>
+                </a>
+            </li>
+            <li class="nav-content-li color-off">
+                <a href="rfis.html" class="nav-a">
+                    <span class="nav-laber nav-off">河道基础信息统计</span>
+                </a>
+            </li>
+        </div>
+    </div>
+    <div class="right">
+        <div class="header" style="display: none">
+            <div class="header-title">
+                <div class="header-title-item">工作台</div>
+                <div class="header-title-item">河湖长履职</div>
+                <div class="header-title-item">项目管理</div>
+                <div class="header-title-item">剿劣行动</div>
+                <div class="header-title-item">地图展示</div>
+                <div class="header-title-item">任务督导</div>
+                <div class="header-title-item header-title-item_on">统计分析</div>
+                <div class="header-title-item">通信助理</div>
+            </div>
+            <div class="header-right">
+                <div class="header-user">
+                    <span class="header-img"></span>
+                    <span class="header-name">徐和张</span>
+                    <span class="header-arrow"></span>
+                </div>
+                <div class="header-click">
+                    <span class="header-cut">切换账号</span>
+                    <span class="header-quit">退出</span>
+                </div>
+            </div>
+        </div>
+        <div class="content">
+            <div class="main">
+                <div class="content-up">
+                    <div class="content-up-left-e">
+                        <div class="content-up-left-select" id="citySelect"  data-toggle="citySelect">
+                            <select id="province" ng-click="selectOn(1)">省
+                                <option value="市">--- 市 ---</option>
+                                <option ng-repeat='item in provinceList'>{{item.name}}</option>
+                            </select><span>-</span>
+                            <select id="city" ng-click="selectOn(2)">市
+                                <option value="县">--- 县 ---</option>
+                                <option ng-repeat='item in cityList'>{{item.name}}</option>
+                            </select><span>-</span>
+                            <select id="district" ng-click="selectOn(3)">县
+                                <option value="镇">--- 镇 ---</option>
+                                <option ng-repeat='item in districtList'>{{item.name}}</option>
+                            </select>
+                        </div>
+                        <div class="content-search hand" ng-click="search()">
+                            <div class="content-search-img"></div>
+                            <div> 搜索</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="content-down">
+                    <div class="content-down-export hand"  ng-click="derivedData()">
+                        <div class="content-down-export-img"></div>
+                        <div> 导出</div>
+                    </div>
+                    <div class="content-down-list">
+                        <table cellpadding="0" cellspacing="0">
+                            <thead>
+                            <tr>
+                                <th>行政区域</th>
+                                <th>标绘河道</th>
+                                <th>市/县/镇/村级河长</th>
+                                <th>工作人员</th>
+                                <th>保洁人员</th>
+                                <th>一河一档</th>
+                                <th>一河一策</th>
+                                <th>公示牌</th>
+                                <th>污染源</th>
+                                <th>污水处理厂</th>
+                                <th>监控摄像头</th>
+                                <th>监测断面</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr ng-repeat="(k,v) in dataList">
+                                <td  ng-click="areaClick(v)"
+                                     ng-if="v.areaName=='总计'"
+                                     ng-class="{false : 'item-color-on',true : 'item-color-off' }[true]">{{v.areaName}}</td>
+                                <td  ng-click="areaClick(v)"
+                                     ng-if="v.areaName!='总计'"
+                                     ng-class="{false : 'item-color-on',true : 'item-color-off' }[areaFlag]">{{v.areaName}}</td>
+                               
+                                <td >{{v.reachCnt}}</td>
+                                <td >{{v.chairmanCntDisplay}}</td>
+                                <td >{{v.staffCnt}}</td>
+                                <td >{{v.cleanerCnt}}</td>
+                                <td >{{v.reachDocCnt}}</td>
+                                <td >{{v.policyDocCnt}}</td>
+                                <td>{{v.publicityCnt}}</td>
+                                <td >{{v.pollutionCnt}}</td>
+                                <td>{{v.treatmentCnt}}</td>
+                                <td >{{v.cameraCnt}}</td>
+                                <td >{{v.sectionCnt}}</td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="box-show" ng-show="IsShow">
+        <div class="box-show-icon">
+        </div>
+    </div>
+</div>
+
+
+<script type="text/javascript">
+    var myApp =angular.module('myApp', []);
+    myApp.controller('testController', function($scope, $http,$filter){
+    	$scope.areaFlag=false;
+        $scope.provinceList = [];
+        $scope.cityList = [];
+        $scope.districtList = [];
+        $scope.IsShow = false;
+        $scope.regionParam = {};
+        $scope.regionParamTwo = {};
+        $scope.regionParamThree = {};
+        $scope.vmParam = {
+            code: "",
+            regionLevel: 0,
+        }
+        $scope.onchangeFlag = false;
+        $scope.dataList=[];
+        //搜索
+        $scope.search = function () {
+            $scope.onchangeFlag = true;
+            if ($("#province").val() != "市" && $("#city").val() != "县" && $("#district").val() != "镇") {
+                $scope.getRegionSelectThree($("#district").val());
+                $scope.vmParam.code = $scope.regionParamThree.code;
+                $scope.vmParam.regionLevel = $scope.regionParamThree.regionLevel;
+                $scope.areaFlag=true;
+                $scope.getRBISData();
+            } else if ($("#province").val() != "市" && $("#city").val() != "县" && $("#district").val() == "镇") {
+                $scope.getRegionSelectTwo($("#city").val());
+                $scope.vmParam.code = $scope.regionParamTwo.code;
+                $scope.vmParam.regionLevel = $scope.regionParamTwo.regionLevel;
+                $scope.getRBISData();
+            } else if ($("#province").val() != "市" && $("#city").val() == "县" && $("#district").val() == "镇") {
+                $scope.getRegionSelectOne($("#province").val());
+                $scope.vmParam.code = $scope.regionParam.code;
+                $scope.vmParam.regionLevel = $scope.regionParam.regionLevel;
+                $scope.getRBISData();
+            } else {
+                $scope.getRegion();
+            }
+        }
+        $scope.areaClick = function (v){
+            if(v.areaName!='总计'&&$("#province").val() != "市" && $("#city").val() != "县" && $("#district").val() == "镇"){
+                $("#district").val(v.areaName)
+                $scope.regionParamThree.code = v.areaCode;
+                $scope.regionParamThree.regionLevel = v.areaLevel;
+                $scope.getRegionSelectThree($("#district").val());
+                $scope.areaFlag=true;
+            }else if(v.areaName!='总计'&&$("#province").val() != "市" && $("#city").val() == "县" && $("#district").val() == "镇"){
+                console.log(v.areaName);
+                $("#city").val(v.areaName)
+                $scope.regionParamTwo.code = v.areaCode;
+                $scope.vmParam.regionLevel = v.areaLevel;
+                $scope.getRegionSelectTwo($("#city").val());
+            }else {
+                return;
+            }
+            $scope.vmParam.code = v.areaCode;
+            $scope.vmParam.regionLevel = v.areaLevel;
+            $scope.getRBISData();
+        }
+
+        //导出
+        $scope.derivedData =function () {
+            if ($("#province").val() != "市" && $("#city").val() != "县" && $("#district").val() != "镇") {
+                $scope.getRegionSelectThree($("#district").val());
+                $scope.vmParam.code = $scope.regionParamThree.code;
+                $scope.vmParam.regionLevel = $scope.regionParamThree.regionLevel;
+                $scope.RegionDerived();
+                return;
+            } else if ($("#province").val() != "市" && $("#city").val() != "县" && $("#district").val() == "镇") {
+                $scope.getRegionSelectTwo($("#city").val());
+                $scope.vmParam.code = $scope.regionParamTwo.code;
+                $scope.vmParam.regionLevel = $scope.regionParamTwo.regionLevel;
+                $scope.RegionDerived();
+                return;
+            } else if ($("#province").val() != "市" && $("#city").val() == "县" && $("#district").val() == "镇") {
+                $scope.getRegionSelectOne($("#province").val());
+                $scope.vmParam.code = $scope.regionParam.code;
+                $scope.vmParam.regionLevel = $scope.regionParam.regionLevel;
+                $scope.RegionDerived();
+                return;
+            } else {
+                $scope.vmParam.code = $scope.provinceList[0].code;
+                $scope.vmParam.regionLevel = $scope.provinceList[0].regionLevel;
+                $scope.RegionDerived();
+                return;
+            }
+
+        }
+        $scope.RegionDerived = function(){
+            window.open(ip + '/statistics/rbis/exportrbislist?code='+$scope.vmParam.code+
+                '&regionLevel='+ $scope.vmParam.regionLevel+
+                '&startDate=2015-01-01');
+        }
+        /**
+         * 获取数据
+         * */
+        $scope.getRBISData = function () {
+            $scope.IsShow = true;
+            $http({
+                method: 'POST',
+                url: ip + '/statistics/rbis/getrbislist',
+                data: JSON.stringify($scope.vmParam),
+                async: false,
+                dataType: 'json',
+                headers: {'Content-Type': 'application/json; charset=UTF-8'},
+                transformRequest: angular.identity,
+            }).then(function successCallback(response) {
+                //成功
+                $scope.dataList = response.data.data;
+                console.log(response.data.data)
+                $scope.IsShow = false;
+                $("#province").val($scope.provinceList[0].name);
+                $('#province option:eq(1)').attr('selected','selected');
+            }, function errorCallback(response) {
+                //失败
+                $scope.IsShow = false;
+                alert("失败" + response.toString());
+            });
+        }
+        $scope.getRegion=function(){
+            $("#province").val($scope.provinceList[0].name);
+            $('#city').val("县");
+            $('#district').val("镇");
+            $scope.districtList = [];
+            $scope.regionParam.code =$scope.provinceList[0].code;
+            $scope.regionParam.regionLevel =$scope.provinceList[0].regionLevel;
+            $scope.vmParam.code = $scope.regionParam.code;
+            $scope.vmParam.regionLevel = $scope.regionParam.regionLevel;
+            $scope.getRegionListTwo();
+            $scope.getRBISData();
+        }
+
+        $scope.getRegionListOne = function () {
+            $http({
+                method: 'Get',
+                url: ip + '/statistics/getregionlist',
+                transformRequest: angular.identity,
+            }).then(function successCallback(response) {
+                $scope.provinceList = response.data.data;
+              //  $("#province").val("市");
+                $scope.search();
+            }, function errorCallback(response) {
+                alert("失败");
+            });
+
+        }
+        $scope.getRegionListTwo = function () {
+            $http({
+                method: 'Get',
+                url: ip + '/statistics/getregionlist',
+                params: $scope.regionParam,
+                transformRequest: angular.identity,
+            }).then(function successCallback(response) {
+                $scope.cityList = response.data.data;
+                $('#city').val("县");
+            }, function errorCallback(response) {
+                alert("失败");
+                $scope.cityList = [];
+                $('#city').val("县");
+                $scope.districtList = [];
+                $('#district').val("");
+            });
+
+        }
+        $scope.getRegionListThree = function () {
+            $http({
+                method: 'Get',
+                url: ip + '/statistics/getregionlist',
+                params: $scope.regionParamTwo,
+                transformRequest: angular.identity,
+            }).then(function successCallback(response) {
+                $scope.districtList = response.data.data;
+                $('#district').val("");
+            }, function errorCallback(response) {
+                alert("失败");
+                $scope.districtList = [];
+                $('#district').val("");
+            });
+
+        }
+        $scope.getRegionSelectOne = function(value){
+            for(var i= 0;i< $scope.provinceList.length;i++){
+                if(value ==$scope.provinceList[i].name){
+                    $scope.regionParam = {
+                        code: $scope.provinceList[i].code,
+                        regionLevel: $scope.provinceList[i].regionLevel,
+                    }
+                    $scope.getRegionListTwo();
+                    $('#city').val("县");
+                    $('#district').val("镇");
+                    $scope.cityList = [];
+                    $scope.districtList = [];
+                    return;
+                }
+            }
+        }
+        $scope.getRegionSelectTwo = function(value){
+            for(var i= 0;i< $scope.cityList.length;i++){
+                if(value == $scope.cityList[i].name){
+                    $scope.regionParamTwo = {
+                        code: $scope.cityList[i].code,
+                        regionLevel: $scope.cityList[i].regionLevel,
+                    };
+                    $scope.getRegionListThree();
+                    $scope.districtList = [];
+                    $('#district').val("镇");
+                    return;
+                }
+            }
+        }
+        $scope.getRegionSelectThree = function(value){
+            for(var i= 0;i< $scope.districtList.length;i++){
+                if(value ==$scope.districtList[i].name){
+                    $scope.regionParamThree = {
+                        code: $scope.districtList[i].code,
+                        regionLevel: $scope.districtList[i].regionLevel,
+                    }
+                    return;
+                }
+            }
+        }
+        $scope.selectOn = function (index) {
+            if (index == '1') {
+                if ($("#province").val() == "市") {
+                    $("#city").val() == "县";
+                    $("#district").val() == "区";
+                    $scope.cityList = [];
+                    $scope.districtList = [];
+                }
+                $scope.getRegionSelectOne($("#province").val())
+            } else if (index == '2') {
+                if ($("#city").val() == "县") {
+                    $("#district").val() == "区";
+                    $scope.districtList = [];
+                }
+                $scope.getRegionSelectTwo($("#city").val())
+            } else if (index == '3') {
+                $scope.getRegionSelectThree($("#district").val());
+            }
+        }
+        //开始检索
+        $scope.beginData = function(){
+            $scope.getRegionListOne();
+            $scope.getRegionSelectOne($("#province").val())
+        }
+        $scope.beginData();
+    })
+</script>
+<script type="text/javascript">
+    // $(function(){
+    //     $('#citySelect').distpicker({});
+    // });
+</script>
+</body>
+</html>

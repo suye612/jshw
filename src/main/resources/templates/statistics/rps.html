@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="zh-cmn-Hans">
+<link>
+<meta charset="UTF-8">
+<meta http-equiv="x-ua-compatible" content="ie=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>区域履职统计</title>
+
+<link rel="stylesheet" href="../css/nav.css">
+<link rel="stylesheet" href="../css/rps.css">
+<link rel="stylesheet" href="../js/datetimepicker/jquery.datetimepicker.css">
+
+<script type="text/javascript" src="../js/header.js"></script>
+<script type="text/javascript" src="../js/angular.min.js"></script>
+<script type="text/javascript" src="../js/jquery-3.2.1.min.js"></script>
+<script type="text/javascript" src="../js/highcharts.js"></script>
+<script type="text/javascript" src="../js/distpicker/distpicker.data.js"></script>
+<script type="text/javascript" src="../js/distpicker/distpicker.js"></script>
+<script type="text/javascript" src="../js/datetimepicker/jquery.datetimepicker.js"></script>
+</head>
+<body ng-app="module" ng-controller="ctrl">
+<div class="wrapper" id="rps">
+    <div class="nav color-off" style="display: none">
+        <div class="nav-header" style="display: none">
+            <span class="">金华市河（湖）长制</span>
+            <span class="">管理信息系统</span>
+        </div>
+        <div class="nav-content">
+            <li class="nav-content-li color-on">
+                <a href="rps.html" class="nav-a">
+                    <span class="nav-laber nav-on">区域履职统计</span>
+                </a>
+            </li>
+            <li class="nav-content-li color-off">
+                <a href="rmps.html" class="nav-a">
+                    <span class="nav-laber nav-off">河长履职统计</span>
+                </a>
+            </li>
+            <li class="nav-content-li color-off">
+                <a href="rbis.html" class="nav-a">
+                    <span class="nav-laber nav-off">区域基础信息统计</span>
+                </a>
+            </li>
+            <li class="nav-content-li color-off">
+                <a href="rfis.html" class="nav-a">
+                    <span class="nav-laber nav-off">河道基础信息统计</span>
+                </a>
+            </li>
+        </div>
+    </div>
+    <div class="right">
+        <div class="header" style="display: none">
+            <div class="header-title">
+                <div class="header-title-item">工作台</div>
+                <div class="header-title-item">河湖长履职</div>
+                <div class="header-title-item">项目管理</div>
+                <div class="header-title-item">剿劣行动</div>
+                <div class="header-title-item">地图展示</div>
+                <div class="header-title-item">任务督导</div>
+                <div class="header-title-item header-title-item_on">统计分析</div>
+                <div class="header-title-item">通信助理</div>
+            </div>
+            <div class="header-right">
+                <div class="header-user">
+                    <span class="header-img"></span>
+                    <span class="header-name">徐和张</span>
+                    <span class="header-arrow"></span>
+                </div>
+                <div class="header-click">
+                    <span class="header-cut">切换账号</span>
+                    <span class="header-quit">退出</span>
+                </div>
+            </div>
+        </div>
+        <div class="content">
+            <div class="main">
+                <div class="content-up">
+                    <div class="content-up-left">
+                        <div class="content-up-left-select" id="citySelect" data-toggle="citySelect">
+                            <select id="province" ng-click="selectOn(1)">省
+                                <option value="市">--- 市 ---</option>
+                                <option ng-repeat='item in provinceList' ng-value="item.name">{{item.name}}</option>
+                            </select><span>-</span>
+                            <select id="city" ng-click="selectOn(2)">市
+                                <option value="县">--- 县 ---</option>
+                                <option ng-repeat='item in cityList'>{{item.name}}</option>
+                            </select><span>-</span>
+                            <select id="district" ng-click="selectOn(3)">县
+                                <option value="镇">--- 镇 ---</option>
+                                <option ng-repeat='item in districtList'>{{item.name}}</option>
+                            </select>
+                        </div>
+                        <div class="content-up-left-data">
+                            <div class="content-up-left-data-time">
+                                <input type="text" id="startTime" ng-model="startTimeValue">
+                                <label for="startTime" class="start_time-right"></label>
+                            </div>
+
+                            <span>-</span>
+                            <div class="content-up-left-data-time">
+                                <input type="text" id="endTime" ng-model="endTimeValue"><label for="endTime"
+                                                                                               class="start_time-right"></label>
+                            </div>
+                        </div>
+                        <div class="content-search hand" style="cursor:pointer;" ng-click="search()">
+                            <div class="content-search-img"></div>
+                            <div> 搜索</div>
+                        </div>
+                    </div>
+                    <div class="content-up-right">
+
+                    </div>
+                </div>
+                <div class="content-down">
+                    <div class="content-down-export hand" style="cursor:pointer;" ng-click="derivedData()">
+                        <div class="content-down-export-img"></div>
+                        <div> 导出</div>
+                    </div>
+                    <div class="content-down-list">
+                        <table cellpadding="0" cellspacing="0">
+                            <thead>
+                            <tr>
+                                <th>序号</th>
+                                <th>区域</th>
+                                <th>应填/已填日志</th>
+                                <th ng-click="orderBy('logRate')">
+                                    <span class="content-item-sequence">日志完成百分率%
+                                        <div class="item-sequence">
+                                        <span ng-class="{false : 'item-sequence-up_on',true : 'item-sequence-up_off' }[status.logRate]"></span>
+                                        <span ng-class="{false : 'item-sequence-down_on',true : 'item-sequence-down_off' }[!status.logRate]"></span>
+                                        </div>
+                                    </span>
+                                </th>
+                                </th>
+                                <th>应处理/已处理事件</th>
+                                <th ng-click="orderBy('eventRate')">
+                                    <span class="content-item-sequence">事件结案率%
+                                        <div class="item-sequence">
+                                        <span ng-class="{false : 'item-sequence-up_on',true : 'item-sequence-up_off' }[status.eventRate]"></span>
+                                        <span ng-class="{false : 'item-sequence-down_on',true : 'item-sequence-down_off' }[!status.eventRate]"></span>
+                                        </div>
+                                    </span>
+                                </th>
+                                <th>应巡/已巡河道</th>
+                                <th ng-click="orderBy('checkRiverRate')">
+                                    <span class="content-item-sequence">巡河达标率%
+                                        <div class="item-sequence">
+                                        <span ng-class="{false : 'item-sequence-up_on',true : 'item-sequence-up_off' }[status.checkRiverRate]"></span>
+                                        <span ng-class="{false : 'item-sequence-down_on',true : 'item-sequence-down_off' }[!status.checkRiverRate]"></span>
+                                        </div>
+                                    </span>
+                                </th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr ng-repeat="(k,v) in dataList">
+                                <td width="8%">{{k+1}}</td>
+                                <td width="15%"
+                                    ng-click="areaClick(v)"
+                                    ng-if="v.areaName=='总计'  "
+                                    ng-class="{false : 'item-color-on',true : 'item-color-off' }[true]">
+                                    {{v.areaName}}
+                                </td>
+                                <td width="15%"
+                                    ng-click="areaClick(v)"
+                                     ng-if="v.areaName!='总计'  "
+                                    ng-class="{false : 'item-color-on',true : 'item-color-off' }[areaFlag]">
+                                    {{v.areaName}}
+                                </td>
+                                <td width="13%">{{v.planLog}}/{{v.doneLog}}</td>
+                                <td width="13%">{{v.logRate | number:2 }}%</td>
+                                <td width="13%">{{v.planEvent}}/{{v.doneEvent}}</td>
+                                <td width="13%">{{v.eventRate | number:2 }}%</td>
+                                <td width="13%">{{v.planCheckRiver}}/{{v.doneCheckRiver}}</td>
+                                <td width="13%">{{v.checkRiverRate | number:2 }}%</td>
+                            </tr>
+                            </tbody>
+                        </table>
+
+                    </div>
+                    <div class="content-down-broken_line">
+                        <div class="content-down-broken_line-top">
+                            <span>应巡河次数/已巡河次数</span>
+                            <span>巡河达标率%</span>
+                        </div>
+                        <div class="content-down-broken_line-content">
+                            <div class="content-down-broken_line-content-top">
+                            </div>
+                            <div class="TabNav">
+                                <ul ng-init='selected=0'>
+                                    <li ng-class='{active:selected==$index}' ng-click='show($index)'
+                                        ng-repeat='item in vmName'>{{item}}
+                                    </li>
+                                </ul>
+                                <div class="TabNav-right-top">
+                                    <li ng-repeat='item in itemData'>
+                                        <span class="icon-chart-data" ng-class='{active:selected==$index}'></span>
+                                        {{item}}
+                                    </li>
+                                </div>
+                                <div class="TabCon">
+                                    <!--<div ng-show='selected==$index' ng-repeat='item in vm'>{{item.con}}</div>-->
+                                    <div id="someColumnLineChart"
+                                         style="width: 100%; height: 500px; margin: 0 auto"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="box-show" ng-if="IsShow" >
+        <div class="box-show-icon">
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    var m = angular.module('module', []);
+    m.controller('ctrl', ['$scope', '$filter', '$http', function ($scope, $filter, $http) {
+    	$scope.areaFlag=false;
+        $scope.provinceList = [{code: "330700000000", regionLevel: 2, name: "金华市"}];
+        $scope.cityList = [];
+        $scope.districtList = [];
+        $scope.IsShow = false;
+        $scope.vmParam = {
+            code: "string",
+            endDate: "2018-01-01",
+            regionLevel: 1,
+            startDate: "2017-01-01",
+        };
+        $scope.regionParam = {};
+        $scope.regionParamTwo = {};
+        $scope.regionParamThree = {};
+        $scope.dataList = [];
+        $scope.data = {
+            areaCode: "string",
+            areaLevel: 0,
+            areaName: "string",
+            checkRiverRate: 0,
+            checkRiverRateDisplay: "string",
+            doneCheckRiver: 0,
+            doneEvent: 0,
+            doneLog: 0,
+            eventRate: 0,
+            eventRateDisplay: "string",
+            logRate: 0,
+            logRateDisplay: "string",
+            planCheckRiver: 0,
+            planEvent: 0,
+            planLog: 0
+        };
+        $scope.vmName = ['日志', '事件', '巡河'];
+        $scope.itemData = ['总数', '已完成', '完成率%'];
+        $scope.vm = [
+            {
+                total: [],
+                completed: [],
+                completedRate: []
+            },
+            {
+                total: [],
+                completed: [],
+                completedRate: []
+            },
+            {
+                total: [],
+                completed: [],
+                completedRate: []
+            },
+        ];
+        $scope.vmItem = {
+            total: [],
+            completed: [],
+            completedRate: []
+        }
+        $scope.categories = [];
+        $scope.startTimeValue = oneYearPast();
+        $scope.endTimeValue = new Date().Format('yyyy/MM/dd');
+        $('#startTime').val($scope.startTimeValue);
+        $('#endTime').val($scope.endTimeValue);
+
+        //记录排序的状态
+        $scope.status = {logRate: false, eventRate: false, checkRiverRate: false};
+        $scope.orderBy = function (field) {
+            /*切换升序和降序*/
+            $scope.status[field] = !$scope.status[field];
+            var length = $scope.dataList.length;
+            var list =  $scope.dataList;
+            var listTwo = $scope.dataList[list.length-1];
+            list.splice(list.length-1,1);
+            var list2= list;
+            $.each( $scope.status,function(key,val){
+            	if(key!=field){
+                  	list2 = $filter('orderBy')(list2, key, $scope.status[key])
+            	}
+            });
+        	list2 = $filter('orderBy')(list2, field, $scope.status[field])
+            $scope.dataList= list2;
+            $scope.dataList.push(listTwo) ;
+        }
+        var selected = $scope.selected;
+        $scope.show = function (index) {
+            $scope.selected = index;
+            $scope.vmItem = $scope.vm[index];
+            $scope.highCharts($scope.categories, $scope.vmItem);
+        };
+        $scope.areaClick = function (v){
+            if(v.areaName!='总计'&&$("#province").val() != "市" && $("#city").val() != "县" && $("#district").val() == "镇"){
+                $("#district").val(v.areaName)
+                $scope.regionParamThree.code = v.areaCode;
+                $scope.regionParamThree.regionLevel = v.areaLevel;
+                $scope.getRegionSelectThree($("#district").val());
+                $scope.areaFlag=true;
+            }else if(v.areaName!='总计'&&$("#province").val() != "市" && $("#city").val() == "县" && $("#district").val() == "镇"){
+                console.log(v.areaName);
+                $("#city").val(v.areaName)
+                $scope.regionParamTwo.code = v.areaCode;
+                $scope.vmParam.regionLevel = v.areaLevel;
+                $scope.getRegionSelectTwo($("#city").val());
+            }
+            $scope.vmParam.code = v.areaCode;
+            $scope.vmParam.regionLevel = v.areaLevel;
+            $scope.getRPSData();
+        }
+        $scope.highCharts = function (categories, chartData) {
+            $('#someColumnLineChart').highcharts({
+                chart: {
+                    zoomType: 'xy'
+                },
+                title: {
+                    text: ''
+                },
+                xAxis: [{
+                    categories: categories
+                }],
+                yAxis: [
+                    { // 主Y轴
+                        labels: {
+                            formatter: function () {
+                                return this.value + "%";
+                            },
+                            style: {
+                                color: '#000'
+                            }
+                        },
+                        title: {
+                            text: '',
+                            style: {
+                                color: '#000'
+                            }
+                        },
+                        opposite: true
+
+                    },
+                    { // 次Y轴
+                        gridLineWidth: 0,
+                        title: {
+                            text: '',
+                            style: {
+                                color: '#000'
+                            }
+                        },
+                        labels: {
+                            formatter: function () {
+                                return this.value;
+                            },
+                            style: {
+                                color: '#000'
+                            }
+                        }
+                    }
+                ],
+                tooltip: {
+                    shared: true
+                },
+                legend: {
+                    enabled: false
+                },
+                series: [
+                    {
+                        name: "总数",
+                        color: '#53a8e2',
+                        type: 'column',
+                        yAxis: 1,
+                        data: chartData.total,
+
+                    },
+                    {
+                        name: "已完成",
+                        type: 'column',
+                        color: '#68dbfc',
+                        yAxis: 1,
+                        data: chartData.completed,
+
+                    },
+                    {
+                        name: "完成率%",
+                        marker: {
+                            fillColor: '#fff',
+                            lineWidth: 1,
+                            lineColor: "#51a5de",
+                            borderColor: "#51a5de"
+                        },
+                        color: '#51a5de',
+                        type: 'spline',
+                        data: chartData.completedRate,
+                        tooltip: {
+                            valueSuffix: '%'
+                        }
+                    }]
+            });
+        }
+        //查询
+        $scope.search = function () {
+        	
+            if($("#province").val() != "市" && $("#city").val() != "县" && $("#district").val() != "镇"){
+                $scope.getRegionSelectThree($("#district").val());
+                $scope.vmParam.code =$scope.regionParamThree.code;
+                $scope.vmParam.regionLevel =$scope.regionParamThree.regionLevel;
+                $scope.areaFlag=true;
+                $scope.getRPSData();
+
+            }else if($("#province").val() != "市" && $("#city").val() != "县" && $("#district").val() == "镇"){
+                $scope.getRegionSelectTwo($("#city").val());
+                $scope.vmParam.code =$scope.regionParamTwo.code;
+                $scope.vmParam.regionLevel =$scope.regionParamTwo.regionLevel;
+                $scope.getRPSData();
+                return;
+            }else if($("#province").val() != "市" && $("#city").val() == "县" && $("#district").val() == "镇"){
+                $scope.getRegionSelectOne($("#province").val());
+                $scope.vmParam.code =$scope.regionParam.code;
+                $scope.vmParam.regionLevel =$scope.regionParam.regionLevel;
+                $scope.getRPSData();
+                return;
+            }else{
+                $scope.getRegion();
+                return;
+            }
+        }
+        //导出
+        $scope.derivedData = function () {
+            $scope.vmParam.startDate = changeData($('#startTime').val());
+            $scope.vmParam.endDate = changeData($('#endTime').val());
+            if($("#province").val() != "市" && $("#city").val() != "县" && $("#district").val() == "镇"){
+                $scope.getRegionSelectThree($("#district").val());
+                $scope.vmParam.code =$scope.regionParamThree.code;
+                $scope.vmParam.regionLevel =$scope.regionParamThree.regionLevel;
+                $scope.regionDerived();
+                return;
+            }else  if($("#province").val() != "市" && $("#city").val() != "县" && $("#district").val() == "镇"){
+                $scope.getRegionSelectTwo($("#city").val());
+                $scope.vmParam.code =$scope.regionParamTwo.code;
+                $scope.vmParam.regionLevel =$scope.regionParamTwo.regionLevel;
+                $scope.regionDerived();
+                return;
+            }else  if($("#province").val() != "市" && $("#city").val() == "县" && $("#district").val() != "镇"){
+                $scope.getRegionSelectOne($("#province").val());
+                $scope.vmParam.code =$scope.regionParam.code;
+                $scope.vmParam.regionLevel =$scope.regionParam.regionLevel;
+                $scope.regionDerived();
+                return;
+            }else{
+                $scope.getRegionDerived();
+                return;
+            }
+        }
+        $scope.regionDerived =function(){
+            window.open(ip + '/statistics/rps/exportrpslist?code=' + $scope.vmParam.code +
+                '&endDate=' + $scope.vmParam.endDate +
+                '&regionLevel=' + $scope.vmParam.regionLevel +
+                '&startDate=' + $scope.vmParam.startDate);
+        }
+        $scope.getRegionDerived = function(){
+            $("#province").val($scope.provinceList[0].name);
+            $scope.vmParam.code =$scope.provinceList[0].code;
+            $scope.vmParam.regionLevel =$scope.provinceList[0].regionLevel;
+            $scope.regionParam.code =$scope.provinceList[0].code;
+            $scope.regionParam.regionLevel =$scope.provinceList[0].regionLevel;
+            window.open(ip + '/statistics/rps/exportrpslist?code=' + $scope.vmParam.code +
+                '&endDate=' + $scope.vmParam.endDate +
+                '&regionLevel=' + $scope.vmParam.regionLevel +
+                '&startDate=' + $scope.vmParam.startDate);
+        }
+        $scope.getRegion=function(){
+            $("#province").val($scope.provinceList[0].name);
+            $('#city').val("县");
+            $('#district').val("镇");
+            $scope.districtList = [];
+            $scope.regionParam.code =$scope.provinceList[0].code;
+            $scope.regionParam.regionLevel =$scope.provinceList[0].regionLevel;
+            $scope.vmParam.code = $scope.regionParam.code;
+            $scope.vmParam.regionLevel = $scope.regionParam.regionLevel;
+            $scope.getRegionListTwo();
+            $scope.getRPSData();
+        }
+        $scope.getRegionListTwo = function () {
+            $http({
+                method: 'Get',
+                url: ip + '/statistics/getregionlist',
+                params: $scope.regionParam,
+                transformRequest: angular.identity,
+            }).then(function successCallback(response) {
+                $scope.cityList = response.data.data;
+                $('#city').val("县");
+            }, function errorCallback(response) {
+                alert("失败");
+                $scope.cityList = [];
+                $('#city').val("县");
+                $scope.districtList = [];
+                $('#district').val("");
+            });
+
+        }
+        $scope.getRegionListThree = function () {
+            $http({
+                method: 'Get',
+                url: ip + '/statistics/getregionlist',
+                params: $scope.regionParamTwo,
+                transformRequest: angular.identity,
+            }).then(function successCallback(response) {
+                $scope.districtList = response.data.data;
+                $('#district').val("");
+            }, function errorCallback(response) {
+                alert("失败");
+                $scope.districtList = [];
+                $('#district').val("");
+            });
+
+        }
+        $scope.getRegionSelectOne = function(value){
+          for(var i= 0;i< $scope.provinceList.length;i++){
+              if(value ==$scope.provinceList[i].name){
+                  $scope.regionParam = {
+                      code: $scope.provinceList[i].code,
+                      regionLevel: $scope.provinceList[i].regionLevel,
+                  }
+                  $scope.getRegionListTwo();
+                  $('#city').val("县");
+                  $('#district').val("镇");
+                  $scope.cityList = [];
+                  $scope.districtList = [];
+                  return;
+              }
+          }
+        }
+        $scope.getRegionSelectTwo = function(value){
+            for(var i= 0;i< $scope.cityList.length;i++){
+                if(value == $scope.cityList[i].name){
+                    $scope.regionParamTwo = {
+                        code: $scope.cityList[i].code,
+                        regionLevel: $scope.cityList[i].regionLevel,
+                    };
+                    $scope.getRegionListThree();
+                    $scope.districtList = [];
+                    $('#district').val("镇");
+                    return;
+                }
+            }
+        }
+        $scope.getRegionSelectThree = function(value){
+            for(var i= 0;i< $scope.districtList.length;i++){
+                if(value ==$scope.districtList[i].name){
+                    $scope.regionParamThree = {
+                        code: $scope.districtList[i].code,
+                        regionLevel: $scope.districtList[i].regionLevel,
+                    }
+                    return;
+                }
+            }
+        }
+        $scope.selectOn = function (index) {
+            if (index == '1') {
+                if ($("#province").val() == "市") {
+                    $("#city").val() == "县";
+                    $("#district").val() == "区";
+                    $scope.cityList = [];
+                    $scope.districtList = [];
+                }
+               $scope.getRegionSelectOne($("#province").val())
+            } else if (index == '2') {
+                if ($("#city").val() == "县") {
+                    $("#district").val() == "区";
+                    $scope.districtList = [];
+                }
+                $scope.getRegionSelectTwo($("#city").val())
+            } else if (index == '3') {
+                $scope.getRegionSelectThree($("#district").val());
+            }
+        }
+        $scope.getRegionListOne = function () {
+            $http({
+                method: 'Get',
+                url: ip + '/statistics/getregionlist',
+                transformRequest: angular.identity,
+            }).then(function successCallback(response) {
+                $scope.provinceList = response.data.data;
+                $("#province").val($scope.provinceList[0].name);
+                $('#province option:eq(1)').attr('selected','selected');
+                $scope.search();
+            }, function errorCallback(response) {
+                alert("失败");
+            });
+
+        }
+        //开始检索
+        $scope.beginData = function(){
+            $scope.getRegionListOne();
+            $scope.getRegionSelectOne($("#province").val())
+        }
+        $scope.beginData();
+        $scope.getRPSData = function () {
+            $scope.vmParam.startDate = changeData($('#startTime').val());
+            $scope.vmParam.endDate = changeData($('#endTime').val());
+            $scope.IsShow = true;
+            $http({
+                method: 'POST',
+                url: ip + '/statistics/rps/getrpslist',
+                data: JSON.stringify($scope.vmParam),
+                async: false,
+                dataType: 'json',
+                headers: {'Content-Type': 'application/json; charset=UTF-8'},
+                transformRequest: angular.identity,
+            }).then(function successCallback(response) {
+                $scope.status = {logRate: false, eventRate: false, checkRiverRate: false};
+                $scope.handleData(response.data.data);
+                $scope.IsShow = false;
+                $("#province").val($scope.provinceList[0].name);
+                $('#province option:eq(1)').attr('selected','selected');
+            }, function errorCallback(response) {
+                //失败
+                $scope.IsShow = false;
+                alert("失败");
+            });
+        }
+
+        $scope.handleData = function (data) {
+            if (data != null) {
+                $scope.dataList = data;
+                $scope.categories = [];
+                $scope.vm = [
+                    {
+                        total: [],
+                        completed: [],
+                        completedRate: []
+                    },
+                    {
+                        total: [],
+                        completed: [],
+                        completedRate: []
+                    },
+                    {
+                        total: [],
+                        completed: [],
+                        completedRate: []
+                    },
+                ];
+                for (var i = 0; i < data.length-1; i++) {
+                    $scope.vm[0].total.push($scope.dataList[i].planLog);
+                    $scope.vm[0].completed.push($scope.dataList[i].doneLog);
+                    $scope.vm[0].completedRate.push($scope.dataList[i].logRate);
+
+                    $scope.vm[1].total.push($scope.dataList[i].planEvent);
+                    $scope.vm[1].completed.push($scope.dataList[i].doneEvent);
+                    $scope.vm[1].completedRate.push($scope.dataList[i].eventRate);
+
+                    $scope.vm[2].total.push($scope.dataList[i].planCheckRiver);
+                    $scope.vm[2].completed.push($scope.dataList[i].doneCheckRiver);
+                    $scope.vm[2].completedRate.push($scope.dataList[i].checkRiverRate);
+
+                    $scope.categories.push($scope.dataList[i].areaName);
+                }
+                $scope.show(0);
+                // $scope.highCharts($scope.categories,  $scope.vm[0]);
+            }
+        }
+    }]);
+</script>
+<script type="text/javascript">
+
+    $(function () {
+        // $('#citySelect').distpicker({});
+        $('#startTime').datetimepicker({
+            lang: "ch",
+            timepicker: false,
+            onShow: function (ct) {
+                this.setOptions({
+                    maxDate: $('#endTime').val() ? $('#endTime').val() : false
+                })
+            },
+            validateOnBlur: false,
+            format: 'Y/m/d',
+        });
+        $('#endTime').datetimepicker({
+            timepicker: false,
+            onShow: function (ct) {
+                this.setOptions({
+                    minDate: $('#startTime').val() ? $('#startTime').val() : false,
+                })
+            },
+            validateOnBlur: false,
+            format: 'Y/m/d'
+        });
+       
+    });
+</script>
+</body>
+</html>

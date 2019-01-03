@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.jhsw.statistics.dao.ar.AdminRegionMapper">
+
+	<select id="selectAdminRegion"
+		resultType="com.jhsw.statistics.entities.ar.AdminRegion"
+		parameterType="com.jhsw.statistics.entities.ar.AdminRegionQuery">
+		select
+			code, name, regionLevel
+		from
+			MD_ADMINREGION
+		where
+			INSTR(parents, #{code}) > 0
+		and regionLevel = #{regionLevel}
+	</select>
+
+</mapper>
